@@ -1,13 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatDistance } from "date-fns";
-
-export type VideoData = {
-	title: string;
-	videoId: string;
-	date: Date; // TODO: Get type for this
-	uploader: string;
-}
+import { Video as VideoData } from "@/app/lib/definitions";
 
 export default function Video({
 	data

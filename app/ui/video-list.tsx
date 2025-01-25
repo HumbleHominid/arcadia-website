@@ -1,6 +1,5 @@
-import Video, { VideoData } from "@/app/ui/video"
-
-// TODO: DB schema
+import Video from "@/app/ui/video"
+import { Video as VideoData } from "@/app/lib/definitions";
 
 export default function VideoList({
 	videos = []
