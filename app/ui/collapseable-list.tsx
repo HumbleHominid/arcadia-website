@@ -54,10 +54,10 @@ export default function CollapseableList({
 					return (
 						<div
 							key={item.text}
-						 	className="flex gap-2 items-center py-1 px-2"
+						 	className="flex gap-2 items-center py-1 px-2 hover:underline underline-offset-1 decoration-1"
 						>
 							<Image src={item.src} width={20} height={20} alt={`${item.text} Image`}/>
-							<Link href={item.url}>{item.text}</Link>
+							<Link href={item.url} target={item.url.startsWith('/') ? "_self" : "_blank"} rel="noreferrer noopener">{item.text}</Link>
 						</div>
 					)})}
 			</div>
