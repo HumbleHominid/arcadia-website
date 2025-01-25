@@ -23,7 +23,7 @@ export default function Home() {
     {title: "I Made a Fully Automatic Mooshroom Farm!", videoId: "QXeeshjAI44", date: subDays(new Date(), 3), uploader: "HumbleHominid"},
   ];
   return (
-    <article className="flex md:flex-row flex-col gap-4 w-full">
+    <article className="flex md:flex-row flex-col gap-4 w-full px-2">
       {/* Member and Server Info */}
       <div className="flex flex-col gap-1 w-full md:w-3/12">
         <CollapseableList data={members} title="Members" />
