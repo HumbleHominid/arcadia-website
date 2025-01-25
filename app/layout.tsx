@@ -21,8 +21,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased w-full grid items-center justify-items-center`}>
+      <body className={`${inter.className} antialiased w-full grid items-center justify-items-center relative`}>
         <Analytics />
+        {/* Background image */}
+        <div className="absolute top-0 -z-10 h-lvh item-center overflow-hidden">
+          <Image
+            src="/images/background.png"
+            width={2560}
+            height={1440}
+            alt="Arcadia Background Image"
+            className="align-middle overflow-clip"
+          />
+        </div>
         <main className="grid grid-rows-[auto_auto_1fr_auto] items-center justify-items-center min-h-screen max-w-5xl">
           {/* Title Image */}
           <Link href="/">
