@@ -1,6 +1,6 @@
 import CollapseableList from "./ui/collapseable-list";
 import VideoList from "./ui/video-list";
-import { sub, subDays } from "date-fns";
+import { subDays } from "date-fns";
 
 export default function Home() {
   // TODO: Get from skeleton data then DB
