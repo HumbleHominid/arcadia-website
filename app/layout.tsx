@@ -4,6 +4,7 @@ import Footer from "@/app/ui/footer";
 import { inter } from "@/app/ui/font";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: {
@@ -24,12 +25,16 @@ export default function RootLayout({
         <Analytics />
         <main className="grid grid-rows-[auto_auto_1fr_auto] items-center justify-items-center min-h-screen max-w-5xl">
           {/* Title Image */}
-          <Image
-            src="/images/banner.png"
-            width={1500}
-            height={500}
-            alt="Arcadia Banner Image"
-          />
+          <Link
+            href="/"
+          >
+            <Image
+              src="/images/banner.png"
+              width={1500}
+              height={500}
+              alt="Arcadia Banner Image"
+            />
+          </Link>
           {children}
           {/* Footer */}
           <div className="row-start-4 w-full max-w-5xl p-2">
