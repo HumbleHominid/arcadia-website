@@ -29,7 +29,7 @@ export default function RootLayout({
           width={2560}
           height={1440}
           alt="Arcadia Background Image"
-          className="absolute top-0 -z-10 h-lvh min-w-full align-middle overflow-clip object-cover"
+          className="absolute top-0 -z-10 h-full min-w-full align-middle overflow-clip object-cover"
         />
         <main className="grid grid-rows-[auto_auto_1fr_auto] items-center justify-items-center min-h-screen max-w-5xl">
           {/* Title Image */}
