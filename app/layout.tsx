@@ -3,6 +3,7 @@ import "./globals.css";
 import Footer from "@/app/ui/footer";
 import { inter } from "@/app/ui/font";
 import Image from "next/image";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
@@ -20,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased w-full grid items-center justify-items-center`}>
+        <Analytics />
         <div className="grid grid-rows-[auto_auto_1fr_auto] items-center justify-items-center min-h-screen max-w-5xl">
           {/* Title Image */}
           <Image
