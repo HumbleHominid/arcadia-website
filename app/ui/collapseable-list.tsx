@@ -24,7 +24,7 @@ export default function CollapseableList({
 	return (
 		<div
 			className={clsx(
-				"flex flex-col p-2 bg-white rounded-sm",
+				"flex flex-col p-2 bg-white rounded-sm drop-shadow-sm md:drop-shadow-md",
 				{
 					"divide-y": isExpanded
 				}
