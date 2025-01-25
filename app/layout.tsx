@@ -25,9 +25,7 @@ export default function RootLayout({
         <Analytics />
         <main className="grid grid-rows-[auto_auto_1fr_auto] items-center justify-items-center min-h-screen max-w-5xl">
           {/* Title Image */}
-          <Link
-            href="/"
-          >
+          <Link href="/">
             <Image
               src="/images/banner.png"
               width={1500}
