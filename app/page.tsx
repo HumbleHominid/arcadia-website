@@ -31,7 +31,7 @@ export default function Home() {
         <CollapseableList data={server} title="Server Stuff" />
       </div>
       {/* Video section */}
-      <div className="w-full bg-white rounded-sm">
+      <div className="w-full">
         {/* Need a context switcher */}
         {/* List of videos */}
         <VideoList videos={videoData} />

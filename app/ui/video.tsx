@@ -4,7 +4,6 @@ import { formatDistance } from "date-fns";
 
 export type VideoData = {
 	title: string;
-	thumbUrl: string;
 	videoId: string;
 	date: Date; // TODO: Get type for this
 	uploader: string;

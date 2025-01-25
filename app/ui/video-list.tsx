@@ -10,7 +10,7 @@ export default function VideoList({
 }) {
 	return (
 		<div
-			className="flex flex-col divide-y p-4"
+			className="flex flex-col divide-y p-4 bg-white rounded-sm"
 		>
 			{videos.map((video) => {
 				return (
