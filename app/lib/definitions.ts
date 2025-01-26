@@ -5,9 +5,10 @@ export type Social = {
 
 export type Video = {
 	title: string;
-	videoId: string;
-	date: Date;
+	video_id: string;
+	publish_date: string;
 	uploader: string;
+	is_arcadia_video: boolean;
 }
 
 export type Member = {
