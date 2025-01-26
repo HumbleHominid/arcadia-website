@@ -1,4 +1,4 @@
-import { fetchMembers, fetchVideos } from "@/app/lib/data";
+import { fetchMembers, fetchAllVideos, fetchArcadiaVideos, fetchLatestVideos } from "@/app/lib/data";
 import CollapseableList from "@/app/ui/collapseable-list/collapseable-list";
 import VideoList from "@/app/ui/video-list";
 import PageLayout from "@/app/ui/page-layout";
@@ -8,7 +8,7 @@ import VideoListSkeleton from "./ui/skeletons/video-list-skeleton";
 
 export default function Home() {
   const members = fetchMembers();
-  const videos = fetchVideos();
+  const videos = fetchAllVideos();
   const community = [
     {src: "/images/twitter_icon.png", url: "https://x.com/Arcadia_SMP", text: "Twitter/X"},
     {src: "/images/bluesky_icon.svg", url: "https://bsky.app/profile/arcadiasmp.bsky.social", text: "Bluesky"},

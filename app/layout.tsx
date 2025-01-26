@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased w-full grid items-center justify-items-center relative`}>
+      <body className={`${inter.className} antialiased w-full grid grid-rows-[1fr] grid-cols-[1fr] justify-items-center`}>
         <Analytics />
         {/* Background image */}
         <Image
@@ -29,9 +29,9 @@ export default function RootLayout({
           width={2560}
           height={1440}
           alt="Arcadia Background Image"
-          className="absolute top-0 -z-10 h-full max-h-screen min-w-full align-middle overflow-clip object-cover"
+          className="sticky top-0 -z-10 h-screen min-w-full object-cover row-span-full col-span-full"
         />
-        <main className="grid grid-rows-[auto_auto_1fr_auto] items-center justify-items-center min-h-screen max-w-5xl">
+        <main className="grid grid-rows-[auto_auto_1fr_auto] items-center justify-items-center min-h-screen max-w-5xl row-span-full col-span-full mx-0 my-auto">
           {/* Title Image */}
           <Link href="/">
             <Image
