@@ -1,13 +1,10 @@
-import CollapseableList from "./ui/collapseable-list";
+import { fetchMembers } from "@/app/lib/data";
+import CollapseableList from "@/app/ui/collapseable-list";
 import VideoList from "./ui/video-list";
 import { subDays } from "date-fns";
 
-export default function Home() {
-  // TODO: Get from skeleton data then DB
-  const members = [
-    {src: "/images/user.svg", url: "/HumbleHominid", text: "HumbleHominid"},
-    {src: "/images/user.svg", url: "/Zoontii", text: "Zoontii"},
-  ];
+export default async function Home() {
+  const members = (await fetchMembers()).map((member) => { return {src: '/images/user.svg', url: `/${member.name}`, text: member.name}});
   const community = [
     {src: "/images/twitter_icon.png", url: "https://x.com/Arcadia_SMP", text: "Twitter/X"},
     {src: "/images/bluesky_icon.svg", url: "https://bsky.app/profile/arcadiasmp.bsky.social", text: "Bluesky"},
