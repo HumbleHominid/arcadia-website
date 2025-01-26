@@ -52,13 +52,16 @@ export default function CollapseableList({
 			>
 				{data.map((item, index) => {
 					return (
-						<div
+						<Link
 							key={index}
-						 	className="flex gap-2 items-center py-1 px-2 hover:underline underline-offset-1 decoration-1"
+							href={item.url}
+							target={item.url.startsWith('/') ? "_self" : "_blank"}
+							rel="noreferrer noopener"
+							className="flex gap-2 items-center py-1 px-2 hover:underline underline-offset-1 decoration-1 hover:bg-slate-100"
 						>
 							<Image src={item.src} width={20} height={20} alt={`${item.text} Image`}/>
-							<Link href={item.url} target={item.url.startsWith('/') ? "_self" : "_blank"} rel="noreferrer noopener">{item.text}</Link>
-						</div>
+							<span>{item.text}</span>
+						</Link>
 					)})}
 			</div>
 		</div>
