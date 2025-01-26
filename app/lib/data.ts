@@ -36,6 +36,7 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
 				v.is_arcadia_video
 			FROM Videos v
 			INNER JOIN Members m ON v.member_id = m.id
+			ORDER BY v.publish_date DESC
 		`;
 
 		return data.rows;
@@ -49,7 +50,7 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
 export async function fetchLatestVideos(): Promise<Array<Video>> {
 	try {
 		const data = await sql<Video>`
-			SELECT DISTINCT ON (v.member_id)
+			SELECT
 					m.name AS uploader,
 					v.title,
 					v.video_id,
@@ -62,7 +63,7 @@ export async function fetchLatestVideos(): Promise<Array<Video>> {
 					GROUP BY member_id) latest
 				ON v.member_id = latest.member_id AND v.publish_date = latest.max_date
 			INNER JOIN Members m ON v.member_id = m.id
-			ORDER BY v.member_id, v.publish_date DESC
+			ORDER BY v.publish_date DESC
 		`;
 
 		return data.rows;
@@ -85,6 +86,7 @@ export async function fetchArcadiaVideos(): Promise<Array<Video>> {
 			FROM Videos v
 			INNER JOIN Members m ON v.member_id = m.id
 			WHERE v.is_arcadia_video = TRUE
+			ORDER BY v.publish_date DESC
 		`;
 
 		return data.rows;
