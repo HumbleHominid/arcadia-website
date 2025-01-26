@@ -47,7 +47,7 @@ export default function CollapseableList({
 			<div
 				className={clsx(
 					"overflow-hidden flex flex-col divide-y transition-[max-height]",
-					isExpanded ? "max-h-[500px]" : "max-h-0"
+					isExpanded ? "max-h-[1000px]" : "max-h-0"
 				)}
 			>
 				{data.map((item, index) => {
