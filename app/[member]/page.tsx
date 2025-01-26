@@ -1,5 +1,5 @@
 import { fetchSocialsForMember, fetchVideosForMember } from "@/app/lib/data";
-import CollapseableList from "../ui/collapseable-list"
+import CollapseableList from "@/app/ui/collapseable-list"
 import PageLayout from "@/app/ui/page-layout"
 import VideoList from "@/app/ui/video-list";
 import { Metadata } from "next";
