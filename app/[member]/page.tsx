@@ -1,13 +1,16 @@
-import { fetchSocialsForMember } from "../lib/data";
+import { fetchSocialsForMember, fetchVideosForMember } from "@/app/lib/data";
 import CollapseableList from "../ui/collapseable-list"
 import PageLayout from "@/app/ui/page-layout"
+import VideoList from "@/app/ui/video-list";
 
 export default async function Page({
 	params
 }:{
 	params: Promise<{member: string}>
 }) {
-	const socials = (await fetchSocialsForMember((await params).member))
+	const member = (await params).member;
+	// TODO Make not slow
+	const socials = (await fetchSocialsForMember(member))
 		.map((social) => {
 			return {
 				src: "/images/link.svg",
@@ -15,6 +18,7 @@ export default async function Page({
 				text: social.type
 			}
 		});
+		const videos = await fetchVideosForMember(member);
 	return (
 		<PageLayout>
 			{/* Social Section */}
@@ -23,8 +27,7 @@ export default async function Page({
 			</div>
 			{/* Video Section */}
 			<div className="w-full">
-				{/* Member Name */}
-				<h1 className="text-5xl">{(await params).member}</h1>
+				<VideoList videos={videos} />
 			</div>
 		</PageLayout>
 	)

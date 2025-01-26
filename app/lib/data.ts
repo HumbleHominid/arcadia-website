@@ -64,3 +64,25 @@ export async function fetchSocialsForMember(member:string): Promise<Array<Social
 		throw new Error(`Failed to fetch socials for ${member}.`);
 	}
 }
+
+export async function fetchVideosForMember(member:string): Promise<Array<Video>> {
+	try {
+		// TODO Pagination
+		const data = await sql<Video>`
+			SELECT
+				${member} as uploader,
+				title,
+				video_id,
+				publish_date,
+				is_arcadia_video
+			FROM Videos
+			WHERE id = (SELECT id FROM Members WHERE name = ${member})
+		`;
+
+		return data.rows;
+	}
+	catch(err) {
+		console.error('Database Error:', err);
+		throw new Error(`Failed to fetch videos for ${member}.`);
+	}
+}
