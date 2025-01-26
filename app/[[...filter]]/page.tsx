@@ -9,6 +9,7 @@ import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
 import { Video } from "@/app/lib/definitions";
+import { unstable_cache } from "next/cache";
 
 type Props = {
   params: Promise<{filter: FilterType}>;
@@ -26,22 +27,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   const resolvedParams = await params;
   const filter = resolvedParams.filter === undefined ? FilterType.Latest : resolvedParams.filter[0];
-
-  const fetchVideos = (filter: string): Promise<Array<Video>> => {
-		switch (filter) {
-			case FilterType.All:
-				return fetchAllVideos();
-			case FilterType.Arcadia:
-				return fetchArcadiaVideos();
-      // Fallthrough intended
-      case FilterType.Latest:
-      default:
-        return fetchLatestVideos();
-		}
-	}
-
-  const members = fetchMembers();
-  const videos = fetchVideos(filter);
+  const getCachedMembers = unstable_cache(
+    async () => {
+      return fetchMembers();
+    },
+    ['members'],
+    { revalidate: 60 * 60, tags: ['members'] }
+  )
+  const getCachedVideos = unstable_cache(
+    async (filter: string) => {
+      switch (filter) {
+        case FilterType.All:
+          return fetchAllVideos();
+        case FilterType.Arcadia:
+          return fetchArcadiaVideos();
+        // Fallthrough intended
+        case FilterType.Latest:
+        default:
+          return fetchLatestVideos();
+      }
+    },
+    [filter],
+    { revalidate: 1 * 60, tags: ['videos'] }
+  )
+  const videos = getCachedVideos(filter);
+  const members = getCachedMembers();
   const community = [
     {src: "/images/twitter_icon.png", url: "https://x.com/Arcadia_SMP", text: "Twitter/X"},
     {src: "/images/bluesky_icon.svg", url: "https://bsky.app/profile/arcadiasmp.bsky.social", text: "Bluesky"},
