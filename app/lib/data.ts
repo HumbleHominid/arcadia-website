@@ -35,7 +35,7 @@ export async function fetchVideos(): Promise<Array<Video>> {
 				v.publish_date,
 				v.is_arcadia_video
 			FROM Videos v
-			JOIN Members m on v.member_id = m.id
+			INNER JOIN Members m on v.member_id = m.id
 		`;
 
 		return data.rows;
