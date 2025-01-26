@@ -9,6 +9,7 @@ import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
 import { unstable_cache } from "next/cache";
+import { updateDB } from "../lib/actions";
 
 type Props = {
   params: Promise<{filter: FilterType}>;
@@ -35,6 +36,7 @@ export default async function Page({ params }: Props) {
   )
   const getCachedVideos = unstable_cache(
     async (filter: string) => {
+      await updateDB();
       switch (filter) {
         case FilterType.All:
           return fetchAllVideos();
@@ -49,6 +51,7 @@ export default async function Page({ params }: Props) {
     [`${filter}-videos`],
     { revalidate: 1 * 60, tags: [`${filter}-videos`] }
   )
+
   const videos = getCachedVideos(filter);
   const members = getCachedMembers();
   const community = [

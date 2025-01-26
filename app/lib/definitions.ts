@@ -13,9 +13,7 @@ export type Video = {
 
 export type Member = {
 	name: string;
-	ytId: string;
-	socials: Array<Social>;
-	videos: Array<Video>;
+	yt_id: string;
 }
 
 export enum FilterType {

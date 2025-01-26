@@ -4,7 +4,8 @@ import { sql } from "@vercel/postgres";
 import {
 	MembersTable,
 	Video,
-	Social
+	Social,
+	Member
 } from "@/app/lib/definitions";
 
 export async function fetchMembers(): Promise<Array<MembersTable>> {
@@ -135,5 +136,23 @@ export async function fetchSocialsForMember(member:string): Promise<Array<Social
 	catch(err) {
 		console.error('Database Error:', err);
 		throw new Error(`Failed to fetch socials for ${member}.`);
+	}
+}
+
+export async function fetchMembersYouTube(): Promise<Array<Member>> {
+	try {
+		const data = await sql<Member>`
+			SELECT
+				name,
+				yt_id
+			FROM Members
+			WHERE yt_id IS NOT NULL
+		`;
+
+		return data.rows;
+	}
+	catch(err) {
+		console.error('Database Error:', err);
+		throw new Error('Failed to fetch member\'s YouTube.');
 	}
 }
