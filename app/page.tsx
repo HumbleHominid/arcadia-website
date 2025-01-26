@@ -4,6 +4,7 @@ import VideoList from "@/app/ui/video-list";
 import PageLayout from "@/app/ui/page-layout";
 import { Suspense } from "react";
 import MembersList from "@/app/ui/collapseable-list/members-list";
+import VideoListSkeleton from "./ui/skeletons/video-list-skeleton";
 
 export default function Home() {
   const members = fetchMembers();
@@ -31,8 +32,7 @@ export default function Home() {
       <div className="w-full flex flex-col items-center bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl text-lg">
         {/* Need a context switcher */}
         {/* List of videos */}
-        {/* TODO: Make skeleton for the suspense */}
-        <Suspense>
+        <Suspense fallback={<VideoListSkeleton />}>
           <VideoList videos={videos} />
         </Suspense>
       </div>
