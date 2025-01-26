@@ -39,6 +39,7 @@ export default function RootLayout({
               width={1500}
               height={500}
               alt="Arcadia Banner Image"
+              className="w-full md:w-8/12 place-self-center"
             />
           </Link>
           {children}
