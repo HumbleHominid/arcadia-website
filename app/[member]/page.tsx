@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import SocialsList from "@/app/ui/collapseable-list/socials-list";
 import CollapseableList from "@/app/ui/collapseable-list/collapseable-list";
+import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
 
 type Props = {
 	params: Promise<{member: string}>
@@ -31,7 +32,7 @@ export default async function Page({ params }: Props) {
 			{/* Video Section */}
 			<div className="w-full bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
 				{/* TODO: Make skeleton for the suspense */}
-				<Suspense>
+				<Suspense fallback={<VideoListSkeleton />}>
 					<VideoList videos={videos} />
 				</Suspense>
 			</div>
