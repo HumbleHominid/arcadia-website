@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import SocialsList from "@/app/ui/collapseable-list/socials-list";
 import CollapseableList from "@/app/ui/collapseable-list/collapseable-list";
 import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
+import { unstable_cache } from "next/cache";
 
 type Props = {
 	params: Promise<{member: string}>
@@ -19,8 +20,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
 	const member = (await params).member;
-	const socials = fetchSocialsForMember(member);
-	const videos = fetchVideosForMember(member);
+	const getCachedSocialsForMember = unstable_cache(
+		async (member: string) => {
+			return fetchSocialsForMember(member);
+		},
+		[`${member}-socials`],
+		{ revalidate: 60 * 60, tags: [`${member}-socials`]}
+	);
+	const getCachedVideosForMember = unstable_cache(
+		async (member: string) => {
+			return fetchVideosForMember(member);
+		},
+		[`${member}-videos`],
+		{ revalidate: 10 * 60, tags: [`${member}-videos`]}
+	);
+
+	const socials = getCachedSocialsForMember(member);
+	const videos = getCachedVideosForMember(member);
 	return (
 		<PageLayout>
 			{/* Social Section */}
