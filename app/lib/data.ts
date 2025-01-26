@@ -70,13 +70,13 @@ export async function fetchVideosForMember(member:string): Promise<Array<Video>>
 		// TODO Pagination
 		const data = await sql<Video>`
 			SELECT
-				${member} as uploader,
+				${member} AS uploader,
 				title,
 				video_id,
 				publish_date,
 				is_arcadia_video
 			FROM Videos
-			WHERE id = (SELECT id FROM Members WHERE name = ${member})
+			WHERE member_id = (SELECT id FROM Members WHERE name = ${member})
 		`;
 
 		return data.rows;

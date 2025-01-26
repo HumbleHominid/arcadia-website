@@ -16,7 +16,8 @@ export default function Video({
 				target="_blank"
 				rel="noopener noreferrer"
 			>
-				<div className="h-[144px] flex items-center overflow-hidden">
+				<div className={"w-[160px] md:w-[200px] md: flex items-center overflow-hidden"}
+				>
 					<Image
 						src={`https://i.ytimg.com/vi/${data.video_id}/mqdefault.jpg`}
 						alt={`Thumbnail for ${data.title}`}
@@ -27,8 +28,8 @@ export default function Video({
 				</div>
 			</Link>
 			<div>
-				<h2 className="text-xl">{data.title}</h2>
-				<p className="text-normal">
+				<h2 className="text-md md:text-xl">{data.title}</h2>
+				<p className="text-sm md:text-base">
 					<span className="text-gray-600">by: </span>
 					<Link
 						href={`/${data.uploader}`}
