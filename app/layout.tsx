@@ -9,7 +9,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: {
     template: "%s | ArcadiaSMP",
-    default: "Arcadia"
+    default: "ArcadiaSMP"
   },
   description: "The official website for ArcadiaSMP!",
 };

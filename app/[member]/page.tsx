@@ -2,12 +2,19 @@ import { fetchSocialsForMember, fetchVideosForMember } from "@/app/lib/data";
 import CollapseableList from "../ui/collapseable-list"
 import PageLayout from "@/app/ui/page-layout"
 import VideoList from "@/app/ui/video-list";
+import { Metadata } from "next";
 
-export default async function Page({
-	params
-}:{
+type Props = {
 	params: Promise<{member: string}>
-}) {
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+	return {
+		title: (await params).member
+	}
+}
+
+export default async function Page({ params }: Props) {
 	const member = (await params).member;
 	// TODO Make not slow
 	const socials = (await fetchSocialsForMember(member))
