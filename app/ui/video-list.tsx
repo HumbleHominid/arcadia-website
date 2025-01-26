@@ -7,7 +7,7 @@ export default function VideoList({
 	videos: Array<VideoData>
 }) {
 	return (
-		<div className="flex flex-col divide-y p-4 bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
+		<div className="flex flex-col divide-y px-2 bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
 			{videos.map((video) => {
 				return (
 					<Video

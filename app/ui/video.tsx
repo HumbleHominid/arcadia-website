@@ -10,7 +10,7 @@ export default function Video({
 }) {
 	const posted = formatDistance(new Date(data.publish_date), new Date(), { addSuffix: true })
 	return (
-		<div className="grid grid-cols-[auto_1fr] p-4 gap-4">
+		<div className="grid grid-cols-[auto_1fr] py-2 gap-4">
 			<Link
 				href={`https://www.youtube.com/watch?v=${data.video_id}`}
 				target="_blank"
