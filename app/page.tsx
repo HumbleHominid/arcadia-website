@@ -1,11 +1,13 @@
 import { fetchMembers, fetchVideos } from "@/app/lib/data";
-import CollapseableList from "@/app/ui/collapseable-list";
+import CollapseableList from "@/app/ui/collapseable-list/collapseable-list";
 import VideoList from "@/app/ui/video-list";
 import PageLayout from "@/app/ui/page-layout";
+import { Suspense } from "react";
+import MembersList from "@/app/ui/collapseable-list/members-list";
 
-export default async function Home() {
-  const members = (await fetchMembers()).map((member) => { return {src: '/images/user.svg', url: `/${member.name}`, text: member.name}});
-  const videoData = await fetchVideos();
+export default function Home() {
+  const members = fetchMembers();
+  const videos = fetchVideos();
   const community = [
     {src: "/images/twitter_icon.png", url: "https://x.com/Arcadia_SMP", text: "Twitter/X"},
     {src: "/images/bluesky_icon.svg", url: "https://bsky.app/profile/arcadiasmp.bsky.social", text: "Bluesky"},
@@ -19,15 +21,20 @@ export default async function Home() {
     <PageLayout>
       {/* Member and Server Info */}
       <div className="flex flex-col gap-1 w-full md:w-4/12">
-        <CollapseableList data={members} title="Members" />
+        <Suspense fallback={<CollapseableList title="Members" />}>
+          <MembersList members={members}/>
+        </Suspense>
         <CollapseableList data={community} title="Community" />
         <CollapseableList data={server} title="Server Stuff" />
       </div>
       {/* Video section */}
-      <div className="w-full">
+      <div className="w-full flex flex-col items-center bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl text-lg">
         {/* Need a context switcher */}
         {/* List of videos */}
-        <VideoList videos={videoData} />
+        {/* TODO: Make skeleton for the suspense */}
+        <Suspense>
+          <VideoList videos={videos} />
+        </Suspense>
       </div>
     </PageLayout>
   );

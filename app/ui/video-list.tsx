@@ -1,16 +1,20 @@
-import Video from "@/app/ui/video"
-import { Video as VideoData } from "@/app/lib/definitions";
+'use client';
+
+import { default as VideoComp } from "@/app/ui/video";
+import { Video } from "@/app/lib/definitions";
+import { use } from "react";
 
 export default function VideoList({
-	videos = []
+	videos
 }:{
-	videos: Array<VideoData>
+	videos: Promise<Array<Video>>;
 }) {
+	const allVideos = use(videos);
 	return (
-		<div className="flex flex-col divide-y px-2 bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
-			{videos.map((video) => {
+		<div className="flex flex-col w-full divide-y px-2">
+			{allVideos.map((video) => {
 				return (
-					<Video
+					<VideoComp
 						key={video.video_id}
 						data={video}
 					/>
