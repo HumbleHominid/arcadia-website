@@ -8,7 +8,6 @@ import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
 import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
-import { Video } from "@/app/lib/definitions";
 import { unstable_cache } from "next/cache";
 
 type Props = {
@@ -47,8 +46,8 @@ export default async function Page({ params }: Props) {
           return fetchLatestVideos();
       }
     },
-    [filter],
-    { revalidate: 1 * 60, tags: ['videos'] }
+    [`${filter}-videos`],
+    { revalidate: 1 * 60, tags: [`${filter}-videos`] }
   )
   const videos = getCachedVideos(filter);
   const members = getCachedMembers();
