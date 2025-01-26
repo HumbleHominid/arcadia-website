@@ -1,6 +1,7 @@
 import { fetchMembers, fetchVideos } from "@/app/lib/data";
 import CollapseableList from "@/app/ui/collapseable-list";
 import VideoList from "@/app/ui/video-list";
+import PageLayout from "@/app/ui/page-layout";
 
 export default async function Home() {
   const members = (await fetchMembers()).map((member) => { return {src: '/images/user.svg', url: `/${member.name}`, text: member.name}});
@@ -15,9 +16,9 @@ export default async function Home() {
     {src: "/images/moddermore-positive.png", url: "https://moddermore.net/list/8a52816c90", text: "Server Mods"},
   ];
   return (
-    <article className="flex md:flex-row flex-col gap-4 w-full px-2">
+    <PageLayout>
       {/* Member and Server Info */}
-      <div className="flex flex-col gap-1 w-full md:w-3/12">
+      <div className="flex flex-col gap-1 w-full md:w-4/12">
         <CollapseableList data={members} title="Members" />
         <CollapseableList data={community} title="Community" />
         <CollapseableList data={server} title="Server Stuff" />
@@ -28,6 +29,6 @@ export default async function Home() {
         {/* List of videos */}
         <VideoList videos={videoData} />
       </div>
-    </article>
+    </PageLayout>
   );
 }

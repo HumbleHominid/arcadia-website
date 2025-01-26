@@ -50,10 +50,10 @@ export default function CollapseableList({
 					isExpanded ? "max-h-[500px]" : "max-h-0"
 				)}
 			>
-				{data.map((item) => {
+				{data.map((item, index) => {
 					return (
 						<div
-							key={item.text}
+							key={index}
 						 	className="flex gap-2 items-center py-1 px-2 hover:underline underline-offset-1 decoration-1"
 						>
 							<Image src={item.src} width={20} height={20} alt={`${item.text} Image`}/>
