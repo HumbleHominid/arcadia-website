@@ -29,13 +29,13 @@ export async function fetchVideos(): Promise<Array<Video>> {
 	try {
 		const data = await sql<Video>`
 			SELECT
-				m.name as uploader,
+				m.name AS uploader,
 				v.title,
 				v.video_id,
 				v.publish_date,
 				v.is_arcadia_video
 			FROM Videos v
-			INNER JOIN Members m on v.member_id = m.id
+			INNER JOIN Members m ON v.member_id = m.id
 		`;
 
 		return data.rows;
@@ -50,10 +50,10 @@ export async function fetchSocialsForMember(member:string): Promise<Array<Social
 	try {
 		const data = await sql<Social>`
 			SELECT
-				st.name as type,
+				st.name AS type,
 				s.url
 			FROM Socials s
-			INNER JOIN SocialTypes st on s.social_type_id = st.id
+			INNER JOIN SocialTypes st ON s.social_type_id = st.id
 			WHERE s.member_id = (SELECT id FROM Members WHERE name = ${member})
 		`;
 
