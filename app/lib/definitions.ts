@@ -18,6 +18,12 @@ export type Member = {
 	videos: Array<Video>;
 }
 
+export enum FilterType {
+	Latest = "",
+	All = "all",
+	Arcadia = "arcadia"
+}
+
 // DB Tables
 export type MembersTable = {
 	id: number;

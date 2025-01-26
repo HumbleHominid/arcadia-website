@@ -4,11 +4,44 @@ import VideoList from "@/app/ui/video-list";
 import PageLayout from "@/app/ui/page-layout";
 import { Suspense } from "react";
 import MembersList from "@/app/ui/collapseable-list/members-list";
-import VideoListSkeleton from "./ui/skeletons/video-list-skeleton";
+import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
+import { FilterType } from "@/app/lib/definitions";
+import { Metadata } from "next";
+import VideoFilter from "@/app/ui/video-filter/video-filter";
+import { Video } from "@/app/lib/definitions";
 
-export default function Home() {
+type Props = {
+  params: Promise<{filter: FilterType}>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
+  const filter = resolvedParams.filter === undefined ? "Latest" : resolvedParams.filter[0];
+  const capitalized = filter.charAt(0).toUpperCase() + filter.slice(1);
+  return {
+    title: capitalized
+  }
+}
+
+export default async function Page({ params }: Props) {
+  const resolvedParams = await params;
+  const filter = resolvedParams.filter === undefined ? FilterType.Latest : resolvedParams.filter[0];
+
+  const fetchVideos = (filter: string): Promise<Array<Video>> => {
+		switch (filter) {
+			case FilterType.All:
+				return fetchAllVideos();
+			case FilterType.Arcadia:
+				return fetchArcadiaVideos();
+      // Fallthrough intended
+      case FilterType.Latest:
+      default:
+        return fetchLatestVideos();
+		}
+	}
+
   const members = fetchMembers();
-  const videos = fetchAllVideos();
+  const videos = fetchVideos(filter);
   const community = [
     {src: "/images/twitter_icon.png", url: "https://x.com/Arcadia_SMP", text: "Twitter/X"},
     {src: "/images/bluesky_icon.svg", url: "https://bsky.app/profile/arcadiasmp.bsky.social", text: "Bluesky"},
@@ -31,6 +64,7 @@ export default function Home() {
       {/* Video section */}
       <div className="w-full flex flex-col items-center bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl text-lg">
         {/* Need a context switcher */}
+        <VideoFilter />
         {/* List of videos */}
         <Suspense fallback={<VideoListSkeleton />}>
           <VideoList videos={videos} />

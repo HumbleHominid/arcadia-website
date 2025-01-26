@@ -13,7 +13,7 @@ export default function MembersList({
 		.map((member) => {
 			return {
 				src: '/images/user.svg',
-				url: `/${member.name}`,
+				url: `/member/${member.name}`,
 				text: member.name
 			}
 		});
