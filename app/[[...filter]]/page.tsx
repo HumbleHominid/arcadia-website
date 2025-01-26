@@ -62,7 +62,7 @@ export default async function Page({ params }: Props) {
         <CollapseableList data={server} title="Server Stuff" />
       </div>
       {/* Video section */}
-      <div className="w-full flex flex-col items-center bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl text-lg">
+      <div className="w-full h-min flex flex-col items-center bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl text-lg">
         {/* Need a context switcher */}
         <VideoFilter />
         {/* List of videos */}

@@ -30,7 +30,7 @@ export default async function Page({ params }: Props) {
 			</Suspense>
 			</div>
 			{/* Video Section */}
-			<div className="w-full bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
+			<div className="w-full h-min bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
 				{/* TODO: Make skeleton for the suspense */}
 				<Suspense fallback={<VideoListSkeleton />}>
 					<VideoList videos={videos} />
