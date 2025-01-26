@@ -56,7 +56,7 @@ export async function fetchSocialsForMember(member:string): Promise<Array<Social
 			INNER JOIN SocialTypes st on s.social_type_id = st.id
 			WHERE s.member_id = (SELECT id FROM Members WHERE name = ${member})
 		`;
-		console.log(data.rows)
+
 		return data.rows;
 	}
 	catch(err) {
