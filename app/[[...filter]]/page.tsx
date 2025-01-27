@@ -15,13 +15,8 @@ type Props = {
   params: Promise<{filter: FilterType}>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const resolvedParams = await params;
-  const filter = resolvedParams.filter === undefined ? "Latest" : resolvedParams.filter[0];
-  const capitalized = filter.charAt(0).toUpperCase() + filter.slice(1);
-  return {
-    title: capitalized
-  }
+export const metadata: Metadata = {
+  title: "Arcadia"
 }
 
 export default async function Page({ params }: Props) {
