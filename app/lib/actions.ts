@@ -21,7 +21,7 @@ export async function createVideo(video: Video) {
 	}
 }
 
-export async function updateDB() {
+export async function updateDbVideos() {
 	// Get list of members
 	const members: Array<Member> = [];
 	try {
