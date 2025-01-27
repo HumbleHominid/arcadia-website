@@ -9,7 +9,7 @@ import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
 import { unstable_cache } from "next/cache";
-import { updateDbVideos } from "@/app/lib/actions";
+import { updateDbMembers, updateDbVideos } from "@/app/lib/actions";
 
 type Props = {
   params: Promise<{filter: FilterType}>;
@@ -24,13 +24,20 @@ export default async function Page({ params }: Props) {
   const filter = resolvedParams.filter === undefined ? FilterType.Latest : resolvedParams.filter[0];
   const getCachedMembers = unstable_cache(
     async () => {
+      await updateDbMembers();
       return fetchMembers();
     },
     ['members'],
-    { revalidate: 60 * 60, tags: ['members'] }
+    { revalidate: 0.25 * 60, tags: ['members'] } // Make the member's cache stale after 24h
   )
   const getCachedVideos = unstable_cache(
     async (filter: string) => {
+      try {
+        updateDbVideos();
+      }
+      catch (e) {
+        console.error('getCachedVideos: updateDbVideos err', e);
+      }
       switch (filter) {
         case FilterType.All:
           return fetchAllVideos();
@@ -43,13 +50,12 @@ export default async function Page({ params }: Props) {
       }
     },
     [`${filter}-videos`],
-    { revalidate: 10 * 60, tags: [`${filter}-videos`] }
+    { revalidate: 0.25 * 60, tags: [`${filter}-videos`] }
   )
 
   // Try to update the DB with new videos
-  updateDbVideos();
-  const videos = getCachedVideos(filter);
   const members = getCachedMembers();
+  const videos = getCachedVideos(filter);
   const community = [
     {src: "/images/twitter_icon.png", url: "https://x.com/Arcadia_SMP", text: "Twitter/X"},
     {src: "/images/bluesky_icon.svg", url: "https://bsky.app/profile/arcadiasmp.bsky.social", text: "Bluesky"},

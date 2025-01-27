@@ -1,4 +1,4 @@
-import { fetchSocialsForMember, fetchVideosForMember } from "@/app/lib/data";
+import { fetchMemberByHandle, fetchSocialsForMemberHandle, fetchVideosForMemberHandle } from "@/app/lib/data";
 import PageLayout from "@/app/ui/page-layout"
 import VideoList from "@/app/ui/video-list";
 import { Metadata } from "next";
@@ -13,30 +13,33 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+	const handle = (await params).member.replace('%40', '@');
+	const member = await fetchMemberByHandle(handle);
 	return {
-		title: decodeURI((await params).member)
+		title: member[0] ? member[0].name : 'Arcadian'
 	}
 }
 
 export default async function Page({ params }: Props) {
-	const member = decodeURI((await params).member);
-	const getCachedSocialsForMember = unstable_cache(
-		async (member: string) => {
-			return fetchSocialsForMember(member);
+	// decodeURI doesn't consider that @ was encoded so we have to do this
+	const handle = (await params).member.replace('%40', '@');
+	const getCachedSocialsForMemberHandle = unstable_cache(
+		async (handle: string) => {
+			return fetchSocialsForMemberHandle(handle);
 		},
-		[`${member}-socials`],
-		{ revalidate: 60 * 60, tags: [`${member}-socials`]}
+		[`${handle}-socials`],
+		{ revalidate: 24 * 60 * 60, tags: [`${handle}-socials`]}
 	);
 	const getCachedVideosForMember = unstable_cache(
-		async (member: string) => {
-			return fetchVideosForMember(member);
+		async (handle: string) => {
+			return fetchVideosForMemberHandle(handle);
 		},
-		[`${member}-videos`],
-		{ revalidate: 10 * 60, tags: [`${member}-videos`]}
+		[`${handle}-videos`],
+		{ revalidate: 10 * 60, tags: [`${handle}-videos`]}
 	);
 
-	const socials = getCachedSocialsForMember(member);
-	const videos = getCachedVideosForMember(member);
+	const socials = getCachedSocialsForMemberHandle(handle);
+	const videos = getCachedVideosForMember(handle);
 	return (
 		<PageLayout>
 			{/* Social Section */}

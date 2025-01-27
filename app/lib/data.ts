@@ -2,18 +2,18 @@
 
 import { sql } from "@vercel/postgres";
 import {
-	MembersTable,
 	Video,
 	Social,
-	Member
+	Member,
+	MemberYouTube
 } from "@/app/lib/definitions";
 
-export async function fetchMembers(): Promise<Array<MembersTable>> {
+export async function fetchMembers(): Promise<Array<Member>> {
 	try {
-		const data = await sql<MembersTable>`
+		const data = await sql<Member>`
 			SELECT
-				id,
 				name,
+				handle,
 				yt_id,
 				yt_pfp_url
 			FROM Members
@@ -32,11 +32,14 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
 	try {
 		const data = await sql<Video>`
 			SELECT
-				m.name AS uploader,
+				m.name AS uploader_name,
+				m.handle AS uploader_handle,
+				m.yt_id AS uploader_id,
 				v.title,
 				v.video_id,
 				v.publish_date,
-				v.is_arcadia_video
+				v.is_arcadia_video,
+				v.duration
 			FROM Videos v
 			INNER JOIN Members m ON v.member_id = m.id
 			ORDER BY v.publish_date DESC
@@ -55,12 +58,14 @@ export async function fetchLatestVideos(): Promise<Array<Video>> {
 	try {
 		const data = await sql<Video>`
 			SELECT
-					m.name AS uploader,
+					m.name AS uploader_name,
+					m.handle AS uploader_handle,
 					m.yt_id AS uploader_id,
 					v.title,
 					v.video_id,
 					v.publish_date,
-					v.is_arcadia_video
+					v.is_arcadia_video,
+					v.duration
 			FROM videos v
 			JOIN
 					(SELECT member_id, MAX(publish_date) as max_date
@@ -83,11 +88,14 @@ export async function fetchArcadiaVideos(): Promise<Array<Video>> {
 	try {
 		const data = await sql<Video>`
 			SELECT
-				m.name AS uploader,
+				m.name AS uploader_name,
+				m.handle AS uploader_handle,
+				m.yt_id AS uploader_id,
 				v.title,
 				v.video_id,
 				v.publish_date,
-				v.is_arcadia_video
+				v.is_arcadia_video,
+				v.duration
 			FROM Videos v
 			INNER JOIN Members m ON v.member_id = m.id
 			WHERE v.is_arcadia_video = TRUE
@@ -103,17 +111,21 @@ export async function fetchArcadiaVideos(): Promise<Array<Video>> {
 	}
 }
 
-export async function fetchVideosForMember(member:string): Promise<Array<Video>> {
+export async function fetchVideosForMemberHandle(handle:string): Promise<Array<Video>> {
 	try {
 		const data = await sql<Video>`
 			SELECT
-				${member} AS uploader,
+				m.name AS uploader_name,
+				m.handle AS uploader_handle,
+				m.yt_id AS uploader_id,
 				title,
 				video_id,
 				publish_date,
-				is_arcadia_video
-			FROM Videos
-			WHERE member_id = (SELECT id FROM Members WHERE name = ${member})
+				is_arcadia_video,
+				duration
+			FROM Videos v
+			INNER JOIN Members m on v.member_id = m.id
+			WHERE m.handle = ${handle}
 			ORDER BY publish_date DESC
 			LIMIT 50
 		`;
@@ -122,11 +134,11 @@ export async function fetchVideosForMember(member:string): Promise<Array<Video>>
 	}
 	catch(err) {
 		console.error('Database Error:', err);
-		throw new Error(`Failed to fetch videos for ${member}.`);
+		throw new Error(`Failed to fetch videos for handle '${handle}'.`);
 	}
 }
 
-export async function fetchSocialsForMember(member:string): Promise<Array<Social>> {
+export async function fetchSocialsForMemberHandle(handle:string): Promise<Array<Social>> {
 	try {
 		const data = await sql<Social>`
 			SELECT
@@ -134,7 +146,7 @@ export async function fetchSocialsForMember(member:string): Promise<Array<Social
 				s.url
 			FROM Socials s
 			INNER JOIN SocialTypes st ON s.social_type_id = st.id
-			WHERE s.member_id = (SELECT id FROM Members WHERE name = ${member})
+			WHERE s.member_id = (SELECT id FROM Members WHERE handle = ${handle})
 			ORDER BY st.name ASC
 		`;
 
@@ -142,18 +154,36 @@ export async function fetchSocialsForMember(member:string): Promise<Array<Social
 	}
 	catch(err) {
 		console.error('Database Error:', err);
-		throw new Error(`Failed to fetch socials for ${member}.`);
+		throw new Error(`Failed to fetch socials for handle '${handle}'.`);
 	}
 }
 
-export async function fetchMembersYouTube(): Promise<Array<Member>> {
+export async function fetchMemberByHandle(handle: string): Promise<Array<Member>> {
 	try {
 		const data = await sql<Member>`
 			SELECT
 				name,
+				handle,
+				yt_id,
+				yt_pfp_url
+			FROM Members
+			WHERE handle = ${handle}
+		`;
+
+		return data.rows;
+	}
+	catch(err) {
+		console.error('Database Error:', err);
+		throw new Error(`Failed to fetch member with handle '${handle}'.`);
+	}
+}
+
+export async function fetchMembersYouTube(): Promise<Array<MemberYouTube>> {
+	try {
+		const data = await sql<MemberYouTube>`
+			SELECT
 				yt_id
 			FROM Members
-			WHERE yt_id IS NOT NULL
 		`;
 
 		return data.rows;

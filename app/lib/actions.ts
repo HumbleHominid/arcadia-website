@@ -1,16 +1,25 @@
 'use server';
 
-import { fetchLatestVideos, fetchMembersYouTube } from "@/app/lib/data";
+import { fetchLatestVideos, fetchMembers, fetchMembersYouTube } from "@/app/lib/data";
 import Parser from "rss-parser";
 import { getYouTube } from "@/app/lib/google";
-import { Member, Video } from "@/app/lib/definitions";
+import { Member, MemberYouTube, Video } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
 
-export async function createVideo(video: Video) {
+type CreateVideoData = {
+	title: string;
+	video_id: string;
+	publish_date: string;
+	duration: string;
+	uploader_id: string;
+	is_arcadia_video: boolean;
+}
+
+export async function createVideo(video: CreateVideoData) {
 	try {
 		await sql`
-			INSERT INTO Videos(member_id, title, video_id, publish_date, is_arcadia_video)
-				SELECT m.id, ${video.title}, ${video.video_id}, ${video.publish_date}, ${video.is_arcadia_video}
+			INSERT INTO Videos(member_id, title, video_id, publish_date, is_arcadia_video, duration)
+				SELECT m.id, ${video.title}, ${video.video_id}, ${video.publish_date}, ${video.is_arcadia_video}, ${video.duration}
 				FROM Members m
 				WHERE m.yt_id = ${video.uploader_id}
 				AND NOT EXISTS (SELECT 1 FROM Videos v WHERE v.video_id = ${video.video_id});
@@ -21,9 +30,78 @@ export async function createVideo(video: Video) {
 	}
 }
 
+async function updateMemberPfp(yt_id: string, pfp: string) {
+	try {
+		await sql`
+			UPDATE Members
+				SET yt_pfp_url = ${pfp}
+				WHERE yt_id = ${yt_id};
+		`;
+	}
+	catch (e) {
+		console.error(`Failed to update pfp for member ${yt_id}`);
+	}
+}
+
+async function updateMemberName(yt_id: string, name: string) {
+	try {
+		await sql`
+			UPDATE Members
+				SET name = ${name}
+				WHERE yt_id = ${yt_id};
+		`;
+	}
+	catch (e) {
+		console.error(`Failed to update pfp for member ${yt_id}`);
+	}
+}
+
+async function updateMemberHandle(yt_id: string, handle: string) {
+	try {
+		await sql`
+			UPDATE Members
+				SET handle = ${handle}
+				WHERE yt_id = ${yt_id};
+		`;
+	}
+	catch (e) {
+		console.error(`Failed to update pfp for member ${yt_id}`);
+	}
+}
+
+async function insertMemberYouTubeSocial(handle: string) {
+	try {
+		const url = `https://www.youtube.com/${handle}`;
+		await sql`
+			INSERT INTO Socials (member_id, social_type_id, url)
+				SELECT m.id, st.id, ${url}
+				FROM Members m, SocialTypes st
+				WHERE m.handle = ${handle}
+				AND st.name = 'YouTube'
+		`;
+	}
+	catch (e) {
+		console.error(`Failed to insert YouTube Social for member '${handle}'`);
+	}
+}
+
+async function updateMemberYouTubeSocial(handle: string) {
+	try {
+		const url = `https://www.youtube.com/${handle}`;
+		await sql`
+			UPDATE Socials
+				SET url = ${url}
+				WHERE id = (SELECT id FROM Members WHERE handle = ${handle})
+		`;
+	}
+	catch (e) {
+		console.error(`Failed to update YouTube Social for member '${handle}'`);
+	}
+}
+
 export async function updateDbVideos() {
 	// Get list of members
-	const members: Array<Member> = [];
+	const members: Array<MemberYouTube> = [];
 	try {
 		members.push(...(await fetchMembersYouTube()));
 	}
@@ -40,12 +118,21 @@ export async function updateDbVideos() {
 		console.error('fetchLatestVideos failure:', e);
 		return;
 	}
+	type ytRSS = {[key: string]: any;} & Parser.Output<{[key: string]: any;}>;
+	let memberRSS: Array<ytRSS> = [];
 	const parser: Parser = new Parser();
 	const corsProxy = 'https://corsproxy.io/?url=';
-	const ytRSS = 'https://www.youtube.com/feeds/videos.xml?channel_id='
-	const memberRSSPromises = members.map((member) => parser.parseURL(corsProxy + ytRSS + member.yt_id));
+	const ytRSS = 'https://www.youtube.com/feeds/videos.xml?channel_id=';
+	// Sequential requests to try not to get blocked
+	members.forEach(async (member) => {
+		try {
+			memberRSS.push(await parser.parseURL(corsProxy + ytRSS + member.yt_id));
+		}
+		catch (e) {
+			console.log(`Member RSS failure: ${member.yt_id}`, e);
+		}
+	});
 
-	const memberRSS = await Promise.all(memberRSSPromises);
 	const vidIdsToRequest: Array<string> = [];
 	memberRSS.forEach((member) => {
 		if (!member.link) return;
@@ -62,7 +149,7 @@ export async function updateDbVideos() {
 		// Figure out how many videos we have to request from the google api
 		for (let i = 0; i < member.items.length; ++i) {
 			const vidId = member.items[i].id.replace('yt:video:', '');
-			if (vidId === dbLatest[0].video_id) break;
+			if (dbLatest.length && vidId === dbLatest[0].video_id) break;
 			vidIdsToRequest.push(vidId);
 		}
 	});
@@ -84,8 +171,7 @@ export async function updateDbVideos() {
 				});
 
 				if (!res.data.items || res.data.items.length === 0) continue;
-
-				const formattedVids: Array<Video> = [];
+				const formattedVids: Array<CreateVideoData> = [];
 				res.data.items.forEach((vid) => {
 					const data = vid.snippet;
 					if (data === undefined) return;
@@ -96,18 +182,22 @@ export async function updateDbVideos() {
 					const valOrEmpty = (val: string | null | undefined) => {
 						return val === undefined || val === null ? '' : val;
 					}
+					let duration: string = 'PT0H0H0S';
+					if (vid.contentDetails?.duration) {
+						duration = vid.contentDetails.duration;
+					}
 					formattedVids.push({
 						title: valOrEmpty(data.title),
 						video_id: valOrEmpty(vid.id),
 						publish_date: valOrEmpty(data.publishedAt),
-						uploader: valOrEmpty(data.channelTitle),
-						uploader_id:  valOrEmpty(data.channelId),
-						is_arcadia_video: is_arcadia_video
+						uploader_id: valOrEmpty(data.channelId),
+						is_arcadia_video: is_arcadia_video,
+						duration: duration
 					});
 				});
 
-				const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
-				await Promise.all(createVideoRequests);
+				// const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
+				// await Promise.all(createVideoRequests);
 			}
 			catch (e) {
 				console.error('api.videos.list failure:', e);
@@ -117,6 +207,66 @@ export async function updateDbVideos() {
 	}
 	catch (e) {
 		console.error('getYouTube failure:', e);
+		return;
+	}
+}
+
+export async function updateDbMembers() {
+	const members: Array<Member> = [];
+	try {
+		members.push(...(await fetchMembers()));
+	}
+	catch (e) {
+		console.log('updateDbMembers: Failed to fetch members.', e);
+		return;
+	}
+	try {
+		const api = await getYouTube();
+		members.forEach(async (member) => {
+			try {
+				const res = await api.channels.list({
+					part: [
+						"snippet"
+					],
+					id: [
+						member.yt_id
+					]
+				});
+
+				if (!res.data.items || res.data.items.length === 0) return;
+				const ytMember = res.data.items[0];
+				if (!ytMember.snippet) return;
+				const snippet = ytMember.snippet;
+
+				const updatePromises: Array<Promise<void>> = [];
+				if (snippet.customUrl && member.handle !== snippet.customUrl) {
+					updatePromises.push(updateMemberHandle(member.yt_id, snippet.customUrl));
+					// Also add/update this in the socials
+					if (!member.handle) {
+						updatePromises.push(insertMemberYouTubeSocial(snippet.customUrl));
+					}
+					else {
+						updatePromises.push(updateMemberYouTubeSocial(snippet.customUrl));
+					}
+				}
+				if (snippet.title && member.name !== snippet.title) {
+					updatePromises.push(updateMemberName(member.yt_id, snippet.title));
+				}
+				if (snippet.thumbnails && snippet.thumbnails.default && snippet.thumbnails.default.url) {
+					if (member.yt_pfp_url !== snippet.thumbnails.default.url) {
+						updatePromises.push(updateMemberPfp(member.yt_id, snippet.thumbnails.default.url));
+					}
+				}
+				await Promise.all(updatePromises);
+			}
+			catch (e) {
+				console.log(`YouTube Channel request for '${member} failed.'`);
+				return;
+			}
+		});
+	}
+	catch (e) {
+		console.error('Failed to get YouTube API');
 		return;
 	}
 }

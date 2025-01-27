@@ -32,10 +32,10 @@ export default function Video({
 				<p className="text-sm md:text-base">
 					<span className="text-gray-600">by: </span>
 					<Link
-						href={`/member/${data.uploader}`}
+						href={`/member/${data.uploader_handle}`}
 						className="hover:underline underline-offset-1 decoration-1"
 					>
-						{data.uploader}
+						{data.uploader_name}
 					</Link>
 					<span> - {posted}</span>
 				</p>

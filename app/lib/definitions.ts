@@ -3,18 +3,27 @@ export type Social = {
 	url: string;
 }
 
+
 export type Video = {
 	title: string;
 	video_id: string;
 	publish_date: string;
-	uploader: string;
+	uploader_name: string;
+	uploader_handle: string;
 	uploader_id: string;
 	is_arcadia_video: boolean;
+	duration: string;
+}
+
+export type MemberYouTube = {
+	yt_id: string;
 }
 
 export type Member = {
 	name: string;
+	handle: string;
 	yt_id: string;
+	yt_pfp_url: string;
 }
 
 export enum FilterType {
@@ -27,6 +36,7 @@ export enum FilterType {
 export type MembersTable = {
 	id: number;
 	name: string;
+	handle: string;
 	yt_id: string;
 	yt_pfp_url: string;
 }
@@ -38,6 +48,7 @@ export type VideosTable = {
 	video_id: string;
 	publish_date: string;
 	arcadia_video: boolean;
+	duration: string;
 }
 
 export type SocialTypesTable = {
