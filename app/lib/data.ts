@@ -39,6 +39,7 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
 			FROM Videos v
 			INNER JOIN Members m ON v.member_id = m.id
 			ORDER BY v.publish_date DESC
+			LIMIT 50
 		`;
 
 		return data.rows;
@@ -89,6 +90,7 @@ export async function fetchArcadiaVideos(): Promise<Array<Video>> {
 			INNER JOIN Members m ON v.member_id = m.id
 			WHERE v.is_arcadia_video = TRUE
 			ORDER BY v.publish_date DESC
+			LIMIT 50
 		`;
 
 		return data.rows;
