@@ -1,7 +1,7 @@
 import { fetchLatestVideos, fetchMembersYouTube } from "@/app/lib/data";
 import Parser from "rss-parser";
 import { getYouTube } from "@/app/lib/google";
-import { Video } from "@/app/lib/definitions";
+import { Member, Video } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
 
 export async function createVideo(video: Video) {
@@ -16,21 +16,30 @@ export async function createVideo(video: Video) {
 	}
 	catch (err) {
 		console.error('Database Error:', err);
-		throw new Error('Failed to create Video');
 	}
 }
 
 export async function updateDB() {
 	// Get list of members
-	const members = await fetchMembersYouTube();
+	const members: Array<Member> = []
+	try {
+		members.concat(await fetchMembersYouTube());
+	}
+	catch (e) {
+		return;
+	}
 	// Get latest video for each member
-	const latestVideosPromise = fetchLatestVideos();
+	try {
+		var latestVideos = await fetchLatestVideos();
+	}
+	catch (e) {
+		return;
+	}
 	const parser: Parser = new Parser();
 	const corsProxy = 'https://corsproxy.io/?url=';
 	const ytRSS = 'https://www.youtube.com/feeds/videos.xml?channel_id='
 	const memberRSSPromises = members.map((member) => parser.parseURL(corsProxy + ytRSS + member.yt_id));
 
-	const latestVideos = await latestVideosPromise;
 	const memberRSS = await Promise.all(memberRSSPromises);
 	const vidIdsToRequest: Array<string> = [];
 	memberRSS.forEach((member) => {
@@ -53,17 +62,27 @@ export async function updateDB() {
 	if (vidIdsToRequest.length === 0) return;
 
 	// Hit the google api
-	const api = await getYouTube();
+	try {
+		var api = await getYouTube();
+	}
+	catch (e) {
+		return;
+	}
 	const id_request_max_len = 50;
 	for (let i = 0; i < vidIdsToRequest.length;i+=id_request_max_len) {
-		const res = await api.videos.list({
-			part: [
-				"snippet,contentDetails"
-			],
-			id: vidIdsToRequest.slice(i, i+id_request_max_len)
-		});
+		try {
+			var res = await api.videos.list({
+				part: [
+					"snippet,contentDetails"
+				],
+				id: vidIdsToRequest.slice(i, i+id_request_max_len)
+			});
 
-		if (!res.data.items || res.data.items.length === 0) continue;
+			if (!res.data.items || res.data.items.length === 0) continue;
+		}
+		catch (e) {
+			continue;
+		}
 
 		const formattedVids: Array<Video> = [];
 		res.data.items.forEach((vid) => {
