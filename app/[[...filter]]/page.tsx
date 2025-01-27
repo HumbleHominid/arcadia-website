@@ -49,7 +49,7 @@ export default async function Page({ params }: Props) {
       }
     },
     [`${filter}-videos`],
-    { revalidate: 1 * 60, tags: [`${filter}-videos`] }
+    { revalidate: 10 * 60, tags: [`${filter}-videos`] }
   )
 
   const videos = getCachedVideos(filter);
