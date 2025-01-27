@@ -32,7 +32,7 @@ export default async function Page({ params }: Props) {
   const getCachedVideos = unstable_cache(
     async (filter: string) => {
       try {
-        await updateDB();
+        updateDB();
       }
       catch (e) {
         console.error('Update DB failure:', e);
