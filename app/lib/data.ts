@@ -113,6 +113,7 @@ export async function fetchVideosForMember(member:string): Promise<Array<Video>>
 				is_arcadia_video
 			FROM Videos
 			WHERE member_id = (SELECT id FROM Members WHERE name = ${member})
+			ORDER BY publish_date DESC
 			LIMIT 50
 		`;
 
@@ -133,6 +134,7 @@ export async function fetchSocialsForMember(member:string): Promise<Array<Social
 			FROM Socials s
 			INNER JOIN SocialTypes st ON s.social_type_id = st.id
 			WHERE s.member_id = (SELECT id FROM Members WHERE name = ${member})
+			ORDER BY st.name ASC
 		`;
 
 		return data.rows;
