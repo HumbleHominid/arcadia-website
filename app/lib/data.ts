@@ -16,7 +16,7 @@ export async function fetchMembers(): Promise<Array<MembersTable>> {
 				name,
 				yt_id
 			FROM Members
-			ORDER BY name ASC
+			ORDER BY lower(name) ASC
 		`;
 
 		return data.rows;
