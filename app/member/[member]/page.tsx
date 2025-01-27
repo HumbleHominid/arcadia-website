@@ -14,12 +14,12 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	return {
-		title: (await params).member
+		title: decodeURI((await params).member)
 	}
 }
 
 export default async function Page({ params }: Props) {
-	const member = (await params).member;
+	const member = decodeURI((await params).member);
 	const getCachedSocialsForMember = unstable_cache(
 		async (member: string) => {
 			return fetchSocialsForMember(member);
