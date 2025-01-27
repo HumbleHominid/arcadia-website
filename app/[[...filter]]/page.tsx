@@ -34,7 +34,9 @@ export default async function Page({ params }: Props) {
       try {
         await updateDB();
       }
-      catch (err) { }
+      catch (e) {
+        console.error('Update DB failure:', e);
+      }
       switch (filter) {
         case FilterType.All:
           return fetchAllVideos();

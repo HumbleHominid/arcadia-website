@@ -26,13 +26,16 @@ export async function updateDB() {
 		members.concat(await fetchMembersYouTube());
 	}
 	catch (e) {
+		console.error('fetchMembersYouTube failure:', e);
 		return;
 	}
 	// Get latest video for each member
+	const latestVideos: Array<Video> = []
 	try {
-		var latestVideos = await fetchLatestVideos();
+		latestVideos.concat(await fetchLatestVideos());
 	}
 	catch (e) {
+		console.error('fetchLatestVideos failure:', e);
 		return;
 	}
 	const parser: Parser = new Parser();
@@ -63,48 +66,50 @@ export async function updateDB() {
 
 	// Hit the google api
 	try {
-		var api = await getYouTube();
+		const api = await getYouTube();
+		const id_request_max_len = 50;
+		for (let i = 0; i < vidIdsToRequest.length;i+=id_request_max_len) {
+			try {
+				const res = await api.videos.list({
+					part: [
+						"snippet,contentDetails"
+					],
+					id: vidIdsToRequest.slice(i, i+id_request_max_len)
+				});
+
+				if (!res.data.items || res.data.items.length === 0) continue;
+
+				const formattedVids: Array<Video> = [];
+				res.data.items.forEach((vid) => {
+					const data = vid.snippet;
+					if (data === undefined) return;
+					let is_arcadia_video = false;
+					if (data.tags) {
+						is_arcadia_video = data.tags.filter((tag) => tag.toLowerCase().includes("arcadia")).length > 0;
+					}
+					const valOrEmpty = (val: string | null | undefined) => {
+						return val === undefined || val === null ? '' : val;
+					}
+					formattedVids.push({
+						title: valOrEmpty(data.title),
+						video_id: valOrEmpty(vid.id),
+						publish_date: valOrEmpty(data.publishedAt),
+						uploader: valOrEmpty(data.channelId),
+						is_arcadia_video: is_arcadia_video
+					});
+				});
+
+				const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
+				await Promise.all(createVideoRequests);
+			}
+			catch (e) {
+				console.error('api.videos.list failure:', e);
+				continue;
+			}
+		}
 	}
 	catch (e) {
+		console.error('getYouTube failure:', e);
 		return;
-	}
-	const id_request_max_len = 50;
-	for (let i = 0; i < vidIdsToRequest.length;i+=id_request_max_len) {
-		try {
-			var res = await api.videos.list({
-				part: [
-					"snippet,contentDetails"
-				],
-				id: vidIdsToRequest.slice(i, i+id_request_max_len)
-			});
-
-			if (!res.data.items || res.data.items.length === 0) continue;
-		}
-		catch (e) {
-			continue;
-		}
-
-		const formattedVids: Array<Video> = [];
-		res.data.items.forEach((vid) => {
-			const data = vid.snippet;
-			if (data === undefined) return;
-			let is_arcadia_video = false;
-			if (data.tags) {
-				is_arcadia_video = data.tags.filter((tag) => tag.toLowerCase().includes("arcadia")).length > 0;
-			}
-			const valOrEmpty = (val: string | null | undefined) => {
-				return val === undefined || val === null ? '' : val;
-			}
-			formattedVids.push({
-				title: valOrEmpty(data.title),
-				video_id: valOrEmpty(vid.id),
-				publish_date: valOrEmpty(data.publishedAt),
-				uploader: valOrEmpty(data.channelId),
-				is_arcadia_video: is_arcadia_video
-			});
-		});
-
-		const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
-		await Promise.all(createVideoRequests);
 	}
 }
