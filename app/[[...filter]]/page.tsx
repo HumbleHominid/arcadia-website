@@ -9,7 +9,7 @@ import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
 import { unstable_cache } from "next/cache";
-import { updateDBVideos } from "../lib/actions";
+import { updateDB } from "@/app/lib/actions";
 
 type Props = {
   params: Promise<{filter: FilterType}>;
@@ -47,7 +47,7 @@ export default async function Page({ params }: Props) {
   )
 
   // Try to update the DB with new videos
-  updateDBVideos();
+  updateDB();
   const videos = getCachedVideos(filter);
   const members = getCachedMembers();
   const community = [

@@ -8,6 +8,7 @@ export type Video = {
 	video_id: string;
 	publish_date: string;
 	uploader: string;
+	uploader_id: string;
 	is_arcadia_video: boolean;
 }
 

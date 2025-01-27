@@ -56,6 +56,7 @@ export async function fetchLatestVideos(): Promise<Array<Video>> {
 		const data = await sql<Video>`
 			SELECT
 					m.name AS uploader,
+					m.yt_id AS uploader_id,
 					v.title,
 					v.video_id,
 					v.publish_date,

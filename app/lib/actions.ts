@@ -1,3 +1,5 @@
+'use server';
+
 import { fetchLatestVideos, fetchMembersYouTube } from "@/app/lib/data";
 import Parser from "rss-parser";
 import { getYouTube } from "@/app/lib/google";
@@ -10,7 +12,7 @@ export async function createVideo(video: Video) {
 			INSERT INTO Videos(member_id, title, video_id, publish_date, is_arcadia_video)
 				SELECT m.id, ${video.title}, ${video.video_id}, ${video.publish_date}, ${video.is_arcadia_video}
 				FROM Members m
-				WHERE m.yt_id = ${video.uploader}
+				WHERE m.yt_id = ${video.uploader_id}
 				AND NOT EXISTS (SELECT 1 FROM Videos v WHERE v.video_id = ${video.video_id});
 		`;
 	}
@@ -21,9 +23,9 @@ export async function createVideo(video: Video) {
 
 export async function updateDB() {
 	// Get list of members
-	const members: Array<Member> = []
+	const members: Array<Member> = [];
 	try {
-		members.concat(await fetchMembersYouTube());
+		members.push(...(await fetchMembersYouTube()));
 	}
 	catch (e) {
 		console.error('fetchMembersYouTube failure:', e);
@@ -32,7 +34,7 @@ export async function updateDB() {
 	// Get latest video for each member
 	const latestVideos: Array<Video> = []
 	try {
-		latestVideos.concat(await fetchLatestVideos());
+		latestVideos.push(...(await fetchLatestVideos()));
 	}
 	catch (e) {
 		console.error('fetchLatestVideos failure:', e);
@@ -46,8 +48,12 @@ export async function updateDB() {
 	const memberRSS = await Promise.all(memberRSSPromises);
 	const vidIdsToRequest: Array<string> = [];
 	memberRSS.forEach((member) => {
+		if (!member.link) return;
+		const channelIdMatch = member.link?.match(/\/channel\/([\w-]+)/);
+		if (!(channelIdMatch && channelIdMatch[1])) return;
+		const channelId = channelIdMatch[1];
 		// Get the latest uploaded video for this member
-		const dbLatest = latestVideos.filter((vid) => vid.uploader === member.items[0].author);
+		const dbLatest = latestVideos.filter((vid) => vid.uploader_id === channelId);
 		// The latest video is already the most recent one in our db
 		if (dbLatest.length) {
 			// If the vid in the db is the latest one, early out
@@ -56,7 +62,7 @@ export async function updateDB() {
 		// Figure out how many videos we have to request from the google api
 		for (let i = 0; i < member.items.length; ++i) {
 			const vidId = member.items[i].id.replace('yt:video:', '');
-			if (dbLatest.length > 0 && vidId !== dbLatest[0].video_id) break;
+			if (vidId === dbLatest[0].video_id) break;
 			vidIdsToRequest.push(vidId);
 		}
 	});
@@ -94,7 +100,8 @@ export async function updateDB() {
 						title: valOrEmpty(data.title),
 						video_id: valOrEmpty(vid.id),
 						publish_date: valOrEmpty(data.publishedAt),
-						uploader: valOrEmpty(data.channelId),
+						uploader: valOrEmpty(data.channelTitle),
+						uploader_id:  valOrEmpty(data.channelId),
 						is_arcadia_video: is_arcadia_video
 					});
 				});
