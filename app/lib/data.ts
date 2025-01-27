@@ -13,7 +13,8 @@ export async function fetchMembers(): Promise<Array<MembersTable>> {
 		const data = await sql<MembersTable>`
 			SELECT
 				id,
-				name
+				name,
+				yt_id
 			FROM Members
 			ORDER BY name ASC
 		`;

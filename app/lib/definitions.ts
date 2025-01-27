@@ -26,6 +26,7 @@ export enum FilterType {
 export type MembersTable = {
 	id: number;
 	name: string;
+	yt_id: string;
 }
 
 export type VideosTable = {
