@@ -27,7 +27,7 @@ export default async function Page({ params }: Props) {
       return fetchMembers();
     },
     ['members'],
-    { revalidate: 60 * 60, tags: ['members'] }
+    { revalidate: 1 * 60, tags: ['members'] }
   )
   const getCachedVideos = unstable_cache(
     async (filter: string) => {
@@ -44,7 +44,7 @@ export default async function Page({ params }: Props) {
       }
     },
     [`${filter}-videos`],
-    { revalidate: 10 * 60, tags: [`${filter}-videos`] }
+    { revalidate: 1 * 60, tags: [`${filter}-videos`] }
   )
 
   const videos = getCachedVideos(filter);

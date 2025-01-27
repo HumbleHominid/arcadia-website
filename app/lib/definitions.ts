@@ -27,6 +27,7 @@ export type MembersTable = {
 	id: number;
 	name: string;
 	yt_id: string;
+	yt_pfp_url: string;
 }
 
 export type VideosTable = {

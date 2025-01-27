@@ -12,7 +12,7 @@ export default function MembersList({
 	const allMembers = use(members)
 		.map((member) => {
 			return {
-				src: '/images/user.svg',
+				src: member.yt_pfp_url,
 				url: `/member/${member.name}`,
 				text: member.name
 			}
