@@ -104,7 +104,6 @@ export async function fetchArcadiaVideos(): Promise<Array<Video>> {
 
 export async function fetchVideosForMember(member:string): Promise<Array<Video>> {
 	try {
-		// TODO Pagination
 		const data = await sql<Video>`
 			SELECT
 				${member} AS uploader,
@@ -114,6 +113,7 @@ export async function fetchVideosForMember(member:string): Promise<Array<Video>>
 				is_arcadia_video
 			FROM Videos
 			WHERE member_id = (SELECT id FROM Members WHERE name = ${member})
+			LIMIT 50
 		`;
 
 		return data.rows;
