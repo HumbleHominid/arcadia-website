@@ -19,7 +19,7 @@ export default function SocialsList({
 				case 'Twitch':
 					socialUrl = '/icons/twitch.png'
 					break;
-				case 'Twitter':
+				case 'Twitter/X':
 					socialUrl = '/icons/twitter_icon.png';
 					break;
 				case 'BlueSky':
