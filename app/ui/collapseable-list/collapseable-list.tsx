@@ -15,9 +15,11 @@ export type CollapseableListData = {
 export default function CollapseableList({
 	data = [],
 	title = "",
+	numColsOnMobile = 1
 }:{
 	data?: Array<CollapseableListData>;
 	title: string;
+	numColsOnMobile?: number;
 }) {
 	const [isExpanded, setIsExpanded] = useState(false);
 
@@ -50,7 +52,8 @@ export default function CollapseableList({
 			{/* This thing collapses */}
 			<div
 				className={clsx(
-					"overflow-hidden flex flex-col divide-y transition-[max-height]",
+					"overflow-hidden divide-y transition-[max-height]",
+					`grid grid-cols-${numColsOnMobile} md:grid-cols-1 gap-x-2`,
 					isExpanded ? "max-h-[1000px]" : "max-h-0"
 				)}
 			>
