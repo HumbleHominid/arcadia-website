@@ -39,7 +39,7 @@ async function updateMemberPfp(yt_id: string, pfp: string) {
 		`;
 	}
 	catch (e) {
-		console.error(`Failed to update pfp for member ${yt_id}`);
+		console.error(`Failed to update pfp for member ${yt_id}`, e);
 	}
 }
 
@@ -52,7 +52,7 @@ async function updateMemberName(yt_id: string, name: string) {
 		`;
 	}
 	catch (e) {
-		console.error(`Failed to update pfp for member ${yt_id}`);
+		console.error(`Failed to update pfp for member ${yt_id}`, e);
 	}
 }
 
@@ -65,7 +65,7 @@ async function updateMemberHandle(yt_id: string, handle: string) {
 		`;
 	}
 	catch (e) {
-		console.error(`Failed to update pfp for member ${yt_id}`);
+		console.error(`Failed to update pfp for member ${yt_id}`, e);
 	}
 }
 
@@ -81,7 +81,7 @@ async function insertMemberYouTubeSocial(handle: string) {
 		`;
 	}
 	catch (e) {
-		console.error(`Failed to insert YouTube Social for member '${handle}'`);
+		console.error(`Failed to insert YouTube Social for member '${handle}'`, e);
 	}
 }
 
@@ -95,7 +95,7 @@ async function updateMemberYouTubeSocial(handle: string) {
 		`;
 	}
 	catch (e) {
-		console.error(`Failed to update YouTube Social for member '${handle}'`);
+		console.error(`Failed to update YouTube Social for member '${handle}'`, e);
 	}
 }
 
@@ -108,7 +108,7 @@ async function updateMemberUploadsPlaylist(yt_id: string, uploads_playlist: stri
 		`;
 	}
 	catch (e) {
-		console.error(`Failed to update uploads_playlist for member '${yt_id}'`);
+		console.error(`Failed to update uploads_playlist for member '${yt_id}'`, e);
 	}
 }
 
@@ -136,7 +136,7 @@ export async function updateDbVideos() {
 		api = await getYouTube();
 	}
 	catch (e) {
-		console.error('failed to get YouTube api')
+		console.error('failed to get YouTube api', e)
 		return;
 	}
 
@@ -204,7 +204,7 @@ export async function updateDbVideos() {
 			await Promise.all(createVideoRequests);
 		}
 		catch (e) {
-			console.error(`YouTube playlist or video request for '${member.yt_id} failed.`);
+			console.error(`YouTube playlist or video request for '${member.yt_id} failed.`, e);
 		}
 	}
 }
@@ -223,7 +223,7 @@ export async function updateDbMembers() {
 		api = await getYouTube()
 	}
 	catch (e) {
-		console.error('failed to get YouTube api')
+		console.error('failed to get YouTube api', e);
 		return;
 	}
 
@@ -268,7 +268,7 @@ export async function updateDbMembers() {
 			await Promise.all(updatePromises);
 		}
 		catch (e) {
-			console.log(`YouTube Channel request for '${member} failed.'`);
+			console.log(`YouTube Channel request for '${member} failed.'`, e);
 		}
 	}
 }
