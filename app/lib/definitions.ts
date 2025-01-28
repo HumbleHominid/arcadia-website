@@ -24,6 +24,7 @@ export type Member = {
 	handle: string;
 	yt_id: string;
 	yt_pfp_url: string;
+	uploads_playlist: string;
 }
 
 export enum FilterType {
@@ -39,6 +40,7 @@ export type MembersTable = {
 	handle: string;
 	yt_id: string;
 	yt_pfp_url: string;
+	uploads_playlist: string;
 }
 
 export type VideosTable = {

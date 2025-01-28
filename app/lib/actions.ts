@@ -100,6 +100,19 @@ async function updateMemberYouTubeSocial(handle: string) {
 	}
 }
 
+async function updateMemberUploadsPlaylist(yt_id: string, uploads_playlist: string) {
+	try {
+		await sql`
+			UPDATE Members
+				SET uploads_playlist = ${uploads_playlist}
+				WHERE yt_id = ${yt_id}
+		`;
+	}
+	catch (e) {
+		console.error(`Failed to update uploads_playlist for member '${yt_id}'`);
+	}
+}
+
 export async function updateDbVideos() {
 	// Get list of members
 	const members: Array<MemberYouTube> = [];
@@ -234,7 +247,7 @@ export async function updateDbMembers() {
 		const member = members[i];
 		try {
 			const res = await api.channels.list({
-				part: [ "snippet" ],
+				part: [ "snippet,contentDetails" ],
 				id: [ member.yt_id ]
 			});
 
@@ -242,6 +255,8 @@ export async function updateDbMembers() {
 			const ytMember = res.data.items[0];
 			if (!ytMember.snippet) continue;
 			const snippet = ytMember.snippet;
+			if (!ytMember.contentDetails) continue;
+			const contentDetails = ytMember.contentDetails;
 
 			const updatePromises: Array<Promise<void>> = [];
 			if (snippet.customUrl && member.handle !== snippet.customUrl) {
@@ -262,6 +277,9 @@ export async function updateDbMembers() {
 				if (member.yt_pfp_url !== snippet.thumbnails.default.url) {
 					updatePromises.push(updateMemberPfp(member.yt_id, snippet.thumbnails.default.url));
 				}
+			}
+			if (contentDetails.relatedPlaylists?.uploads && member.uploads_playlist !== contentDetails.relatedPlaylists.uploads) {
+				updatePromises.push(updateMemberUploadsPlaylist(member.yt_id, contentDetails.relatedPlaylists.uploads));
 			}
 			await Promise.all(updatePromises);
 		}

@@ -15,7 +15,8 @@ export async function fetchMembers(): Promise<Array<Member>> {
 				name,
 				handle,
 				yt_id,
-				yt_pfp_url
+				yt_pfp_url,
+				uploads_playlist
 			FROM Members
 			ORDER BY lower(name) ASC
 		`;
@@ -165,7 +166,8 @@ export async function fetchMemberByHandle(handle: string): Promise<Array<Member>
 				name,
 				handle,
 				yt_id,
-				yt_pfp_url
+				yt_pfp_url,
+				uploads_playlist
 			FROM Members
 			WHERE handle = ${handle}
 		`;
