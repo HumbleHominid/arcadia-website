@@ -24,7 +24,7 @@ export default async function Page({ params }: Props) {
   const filter = resolvedParams.filter === undefined ? FilterType.Latest : resolvedParams.filter[0];
   const getCachedMembers = unstable_cache(
     async () => {
-      await updateDbMembers();
+      if (process.env.NODE_ENV === "development") await updateDbMembers();
       return fetchMembers();
     },
     ['members'],
@@ -32,7 +32,7 @@ export default async function Page({ params }: Props) {
   )
   const getCachedVideos = unstable_cache(
     async (filter: string) => {
-      await updateDbVideos();
+      if (process.env.NODE_ENV === "development") await updateDbVideos();
       switch (filter) {
         case FilterType.All:
           return fetchAllVideos();

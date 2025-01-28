@@ -1,0 +1,12 @@
+{
+	"crons": [
+		{
+			"path": "/api/db/update-videos",
+			"schedule": "*/10 * * * *"
+		},
+		{
+			"path": "/api/db/update-members",
+			"schedule": "0 * * * *"
+		}
+	]
+}
