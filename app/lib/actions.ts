@@ -78,6 +78,7 @@ async function insertMemberYouTubeSocial(handle: string) {
 				FROM Members m, SocialTypes st
 				WHERE m.handle = ${handle}
 				AND st.name = 'YouTube'
+				AND NOT EXISTS (SELECT 1 FROM Socials s WHERE s.url = ${url})
 		`;
 	}
 	catch (e) {

@@ -28,14 +28,14 @@ export default async function Page({ params }: Props) {
 			return fetchSocialsForMemberHandle(handle);
 		},
 		[`${handle}-socials`],
-		{ revalidate: 24 * 60 * 60, tags: [`${handle}-socials`]}
+		{ revalidate: 0.25 * 60, tags: [`${handle}-socials`]}
 	);
 	const getCachedVideosForMember = unstable_cache(
 		async (handle: string) => {
 			return fetchVideosForMemberHandle(handle);
 		},
 		[`${handle}-videos`],
-		{ revalidate: 10 * 60, tags: [`${handle}-videos`]}
+		{ revalidate: 0.25 * 60, tags: [`${handle}-videos`]}
 	);
 
 	const socials = getCachedSocialsForMemberHandle(handle);
