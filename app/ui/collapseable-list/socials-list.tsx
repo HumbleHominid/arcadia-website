@@ -11,8 +11,35 @@ export default function SocialsList({
 }) {
 	const allSocials = use(socials)
 		.map((social) => {
+			let socialUrl: string = '';
+			switch (social.type) {
+				case 'YouTube':
+					socialUrl = '/icons/yt.png';
+					break;
+				case 'Twitch':
+					socialUrl = '/icons/twitch.png'
+					break;
+				case 'Twitter':
+					socialUrl = '/icons/twitter_icon.png';
+					break;
+				case 'BlueSky':
+					socialUrl = '/icons/bluesky_icon.svg';
+					break;
+				case 'Linktree':
+					socialUrl = '/icons/linktree.png';
+					break;
+				case 'TikTok':
+					socialUrl = '/icons/tiktok.png'
+					break;
+				case 'Instagram':
+					socialUrl = '/icons/instagram.svg';
+					break;
+				default:
+					socialUrl = '/icons/link.svg';
+			}
+
 			return {
-				src: "/images/link.svg",
+				src: socialUrl,
 				url: social.url,
 				text: social.type
 			}
