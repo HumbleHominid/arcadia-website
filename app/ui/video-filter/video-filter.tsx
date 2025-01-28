@@ -8,7 +8,7 @@ export default function VideoFilter() {
 		FilterType.Arcadia
 	];
 	return (
-		<div className="flex h-10 w-full md:w-8/12 my-2 px-2 divide-x hover:cursor-pointer justify-evenly drop-shadow-md">
+		<div className="flex h-7 sm:h-8 md:h-10 w-full md:w-8/12 my-2 px-2 divide-x hover:cursor-pointer justify-evenly drop-shadow-md">
 			{filters.map((filter) => {
 				return (
 					<VideoFilterSelection key={filter} filter={filter} />

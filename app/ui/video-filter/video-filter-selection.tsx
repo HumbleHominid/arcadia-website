@@ -27,7 +27,7 @@ export default function VideoFilterSelection({
 			<Link
 				href={href}
 				className={clsx(
-					"first:rounded-l-md last:rounded-r-md h-full w-full border flex justify-center items-center hover:underline underline-offset-1 decoration-1",
+					"first:rounded-l-md last:rounded-r-md h-full w-full border flex justify-center items-center hover:underline underline-offset-1 decoration-1 text-sm md:text-base",
 					{
 						"bg-slate-300": isSelected,
 						"bg-slate-100 hover:bg-slate-200": !isSelected
