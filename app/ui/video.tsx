@@ -25,6 +25,9 @@ export default function Video({
 		if (duration.split(':').length === 1) {
 			duration = '0:' + duration;
 		}
+		// Strip hashtags if people put them in the title (this is really only here for shorts)
+		const title = data.title
+			.replace(/(^|\W)#(\w+)/g, '');
 
 	return (
 		<div className="grid grid-cols-[auto_1fr] py-2 gap-4">
@@ -32,12 +35,13 @@ export default function Video({
 				href={`https://www.youtube.com/watch?v=${data.video_id}`}
 				target="_blank"
 				rel="noopener noreferrer"
+				className="self-center"
 			>
 				<div className={"w-[160px] md:w-[200px] overflow-hidden relative"}
 				>
 					<Image
 						src={`https://i.ytimg.com/vi/${data.video_id}/mqdefault.jpg`}
-						alt={`Thumbnail for ${data.title}`}
+						alt={`Thumbnail for ${title}`}
 						width={256}
 						height={144}
 						className="align-middle overflow-hidden"
@@ -49,8 +53,8 @@ export default function Video({
 				</div>
 			</Link>
 			<div>
-				<h2 className="text-md md:text-xl">{data.title}</h2>
-				<p className="text-sm md:text-base">
+				<h2 className="text-sm sm:text-md md:text-xl">{title}</h2>
+				<p className="text-xs sm:text-sm md:text-base">
 					<span className="text-gray-600">by: </span>
 					<Link
 						href={`/member/${data.uploader_handle}`}
