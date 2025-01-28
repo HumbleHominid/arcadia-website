@@ -28,16 +28,11 @@ export default async function Page({ params }: Props) {
       return fetchMembers();
     },
     ['members'],
-    { revalidate: 0.25 * 60, tags: ['members'] } // Make the member's cache stale after 24h
+    { revalidate: 24 * 60 * 60, tags: ['members'] } // Make the member's cache stale after 24h
   )
   const getCachedVideos = unstable_cache(
     async (filter: string) => {
-      try {
-        // updateDbVideos();
-      }
-      catch (e) {
-        console.error('getCachedVideos: updateDbVideos err', e);
-      }
+      await updateDbVideos();
       switch (filter) {
         case FilterType.All:
           return fetchAllVideos();
@@ -50,7 +45,7 @@ export default async function Page({ params }: Props) {
       }
     },
     [`${filter}-videos`],
-    { revalidate: 0.25 * 60, tags: [`${filter}-videos`] }
+    { revalidate: 10 * 60, tags: [`${filter}-videos`] }
   )
 
   // Try to update the DB with new videos

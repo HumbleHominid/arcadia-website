@@ -1,7 +1,6 @@
 'use server';
 
 import { fetchLatestVideos, fetchMembers, fetchMembersYouTube } from "@/app/lib/data";
-import Parser from "rss-parser";
 import { getYouTube } from "@/app/lib/google";
 import { Member, MemberYouTube, Video } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
@@ -132,96 +131,81 @@ export async function updateDbVideos() {
 		console.error('fetchLatestVideos failure:', e);
 		return;
 	}
-	type ytRSS = {[key: string]: any;} & Parser.Output<{[key: string]: any;}>;
-	let memberRSS: Array<ytRSS> = [];
-	const parser: Parser = new Parser();
-	const corsProxy = 'https://corsproxy.io/?url=';
-	const ytRSS = 'https://www.youtube.com/feeds/videos.xml?channel_id=';
-	// Sequential requests to try not to get blocked
-	members.forEach(async (member) => {
-		try {
-			memberRSS.push(await parser.parseURL(corsProxy + ytRSS + member.yt_id));
-		}
-		catch (e) {
-			console.log(`Member RSS failure: ${member.yt_id}`, e);
-		}
-	});
-
-	const vidIdsToRequest: Array<string> = [];
-	memberRSS.forEach((member) => {
-		if (!member.link) return;
-		const channelIdMatch = member.link?.match(/\/channel\/([\w-]+)/);
-		if (!(channelIdMatch && channelIdMatch[1])) return;
-		const channelId = channelIdMatch[1];
-		// Get the latest uploaded video for this member
-		const dbLatest = latestVideos.filter((vid) => vid.uploader_id === channelId);
-		// The latest video is already the most recent one in our db
-		if (dbLatest.length) {
-			// If the vid in the db is the latest one, early out
-			if (member.items[0].id.replace('yt:video:', '') === dbLatest[0].video_id) return;
-		}
-		// Figure out how many videos we have to request from the google api
-		for (let i = 0; i < member.items.length; ++i) {
-			const vidId = member.items[i].id.replace('yt:video:', '');
-			if (dbLatest.length && vidId === dbLatest[0].video_id) break;
-			vidIdsToRequest.push(vidId);
-		}
-	});
-
-	// Early out if we don't have any videos to request
-	if (vidIdsToRequest.length === 0) return;
-
-	// Hit the google api
+	let api: youtube_v3.Youtube;
 	try {
-		const api = await getYouTube();
-		const id_request_max_len = 50;
-		for (let i = 0; i < vidIdsToRequest.length;i+=id_request_max_len) {
-			try {
-				const res = await api.videos.list({
-					part: [
-						"snippet,contentDetails"
-					],
-					id: vidIdsToRequest.slice(i, i+id_request_max_len)
-				});
-
-				if (!res.data.items || res.data.items.length === 0) continue;
-				const formattedVids: Array<CreateVideoData> = [];
-				res.data.items.forEach((vid) => {
-					const data = vid.snippet;
-					if (data === undefined) return;
-					let is_arcadia_video = false;
-					if (data.tags) {
-						is_arcadia_video = data.tags.filter((tag) => tag.toLowerCase().includes("arcadia")).length > 0;
-					}
-					const valOrEmpty = (val: string | null | undefined) => {
-						return val === undefined || val === null ? '' : val;
-					}
-					let duration: string = 'PT0H0H0S';
-					if (vid.contentDetails?.duration) {
-						duration = vid.contentDetails.duration;
-					}
-					formattedVids.push({
-						title: valOrEmpty(data.title),
-						video_id: valOrEmpty(vid.id),
-						publish_date: valOrEmpty(data.publishedAt),
-						uploader_id: valOrEmpty(data.channelId),
-						is_arcadia_video: is_arcadia_video,
-						duration: duration
-					});
-				});
-
-				// const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
-				// await Promise.all(createVideoRequests);
-			}
-			catch (e) {
-				console.error('api.videos.list failure:', e);
-				continue;
-			}
-		}
+		api = await getYouTube();
 	}
 	catch (e) {
-		console.error('getYouTube failure:', e);
+		console.error('failed to get YouTube api')
 		return;
+	}
+
+	for (let i = 0; i < members.length; ++i) {
+		const member = members[i];
+		if (!member.uploads_playlist) continue;
+		// Get the 10 most recent videos from YouTube
+		try {
+			const playlistRes = await api.playlistItems.list({
+				part: [ "snippet" ],
+				playlistId: member.uploads_playlist,
+				maxResults: 10
+			});
+
+			if (!playlistRes.data.items || playlistRes.data.items.length === 0) continue;
+			const playlistVids = playlistRes.data.items;
+			const vidFilter = latestVideos.filter((vid) => vid.uploader_id === member.yt_id);
+
+			// List of vid ids we have to further request because we want some info we don't have
+			const vidsToRequest: Array<string> = [];
+			for (let j = 0; j < playlistVids.length; ++j) {
+				const vidId = playlistVids[j].snippet?.resourceId?.videoId;
+				if (!vidId) continue;
+				if (vidFilter.length !== 0 && vidFilter[0].video_id === vidId) break;
+
+				vidsToRequest.push(vidId);
+			}
+
+			if (vidsToRequest.length === 0) continue;
+
+			const vidsRes = await api.videos.list({
+				part: [ "snippet,contentDetails" ],
+				id:  vidsToRequest
+			});
+
+			if (!vidsRes.data.items || vidsRes.data.items.length === 0) continue;
+			const vids = vidsRes.data.items;
+			const formattedVids: Array<CreateVideoData> = [];
+			vids.forEach((vid) => {
+				const snippet = vid.snippet;
+				if (!snippet) return;
+				let is_arcadia_video = false;
+				if (snippet.tags) {
+					is_arcadia_video = snippet.tags.filter((tag) => tag.toLowerCase().includes("arcadia")).length > 0;
+				}
+				const valOrEmpty = (val: string | null | undefined) => {
+					return val === undefined || val === null ? '' : val;
+				}
+				let duration: string = 'PT0H0H0S';
+				if (vid.contentDetails?.duration) {
+					duration = vid.contentDetails.duration;
+				}
+				formattedVids.push({
+					title: valOrEmpty(snippet.title),
+					video_id: valOrEmpty(vid.id),
+					publish_date: valOrEmpty(snippet.publishedAt),
+					uploader_id: valOrEmpty(snippet.channelId),
+					is_arcadia_video: is_arcadia_video,
+					duration: duration
+				});
+			});
+
+			// Finally create the videos for this person
+			const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
+			await Promise.all(createVideoRequests);
+		}
+		catch (e) {
+			console.error(`YouTube playlist or video request for '${member.yt_id} failed.`);
+		}
 	}
 }
 
@@ -285,7 +269,6 @@ export async function updateDbMembers() {
 		}
 		catch (e) {
 			console.log(`YouTube Channel request for '${member} failed.'`);
-			return;
 		}
 	}
 }

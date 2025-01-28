@@ -184,7 +184,8 @@ export async function fetchMembersYouTube(): Promise<Array<MemberYouTube>> {
 	try {
 		const data = await sql<MemberYouTube>`
 			SELECT
-				yt_id
+				yt_id,
+				uploads_playlist
 			FROM Members
 		`;
 
