@@ -24,7 +24,7 @@ export default function CollapseableList({
 	return (
 		<div
 			className={clsx(
-				"flex flex-col p-2 bg-white rounded-sm drop-shadow-sm md:drop-shadow-md",
+				"flex flex-col p-1 md:p-2 bg-white rounded-sm drop-shadow-sm md:drop-shadow-md",
 				{
 					"divide-y": isExpanded
 				}
@@ -34,12 +34,16 @@ export default function CollapseableList({
 			<div
 				className={clsx(
 					"flex gap-4 items-center hover:cursor-pointer transition-[padding]",
-					isExpanded ? "pb-2" : "pb-0"
+					isExpanded ? "pb-1 md:pb-2" : "pb-0"
 				)}
 				onClick={()=>setIsExpanded(!isExpanded)}
 			>
-				<Bars3Icon width={20} height={20} />
-				<span className="text-xl select-none">
+				<Bars3Icon
+					width={20}
+					height={20}
+					className="w-4 md:w-5 h-auto"
+				/>
+				<span className="text-sm md:text-xl select-none">
 					{title}
 				</span>
 			</div>
@@ -57,10 +61,16 @@ export default function CollapseableList({
 							href={item.url}
 							target={item.url.startsWith('/') ? "_self" : "_blank"}
 							rel="noreferrer noopener"
-							className="flex gap-2 items-center py-1 px-2 hover:underline underline-offset-1 decoration-1 hover:bg-slate-100"
+							className="flex gap-2 items-center py-0.5 md:py-1 px-1 md:px-2 hover:underline underline-offset-1 decoration-1 hover:bg-slate-100"
 						>
-							<Image src={item.src} width={20} height={20} alt={`${item.text} Image`}/>
-							<span>{item.text}</span>
+							<Image
+								src={item.src}
+								width={20}
+								height={20}
+								alt={`${item.text} Image`}
+								className="w-3 md:w-5 h-auto"
+							/>
+							<span className="text-xs md:text-base">{item.text}</span>
 						</Link>
 					)})}
 			</div>
