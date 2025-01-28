@@ -43,7 +43,7 @@ export default function CollapseableList({
 					height={20}
 					className="w-4 md:w-5 h-auto"
 				/>
-				<span className="text-sm md:text-xl select-none">
+				<span className="text-base md:text-xl select-none">
 					{title}
 				</span>
 			</div>
@@ -68,9 +68,9 @@ export default function CollapseableList({
 								width={20}
 								height={20}
 								alt={`${item.text} Image`}
-								className="w-3 md:w-5 h-auto"
+								className="w-4 md:w-5 h-auto"
 							/>
-							<span className="text-xs md:text-base">{item.text}</span>
+							<span className="text-sm md:text-base">{item.text}</span>
 						</Link>
 					)})}
 			</div>
