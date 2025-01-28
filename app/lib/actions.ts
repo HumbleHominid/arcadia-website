@@ -5,6 +5,7 @@ import Parser from "rss-parser";
 import { getYouTube } from "@/app/lib/google";
 import { Member, MemberYouTube, Video } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
+import { youtube_v3 } from "googleapis";
 
 type CreateVideoData = {
 	title: string;
@@ -220,53 +221,53 @@ export async function updateDbMembers() {
 		console.log('updateDbMembers: Failed to fetch members.', e);
 		return;
 	}
+	let api: youtube_v3.Youtube;
 	try {
-		const api = await getYouTube();
-		members.forEach(async (member) => {
-			try {
-				const res = await api.channels.list({
-					part: [
-						"snippet"
-					],
-					id: [
-						member.yt_id
-					]
-				});
-
-				if (!res.data.items || res.data.items.length === 0) return;
-				const ytMember = res.data.items[0];
-				if (!ytMember.snippet) return;
-				const snippet = ytMember.snippet;
-
-				const updatePromises: Array<Promise<void>> = [];
-				if (snippet.customUrl && member.handle !== snippet.customUrl) {
-					updatePromises.push(updateMemberHandle(member.yt_id, snippet.customUrl));
-					// Also add/update this in the socials
-					if (!member.handle) {
-						updatePromises.push(insertMemberYouTubeSocial(snippet.customUrl));
-					}
-					else {
-						updatePromises.push(updateMemberYouTubeSocial(snippet.customUrl));
-					}
-				}
-				if (snippet.title && member.name !== snippet.title) {
-					updatePromises.push(updateMemberName(member.yt_id, snippet.title));
-				}
-				if (snippet.thumbnails && snippet.thumbnails.default && snippet.thumbnails.default.url) {
-					if (member.yt_pfp_url !== snippet.thumbnails.default.url) {
-						updatePromises.push(updateMemberPfp(member.yt_id, snippet.thumbnails.default.url));
-					}
-				}
-				await Promise.all(updatePromises);
-			}
-			catch (e) {
-				console.log(`YouTube Channel request for '${member} failed.'`);
-				return;
-			}
-		});
+		api = await getYouTube()
 	}
 	catch (e) {
-		console.error('Failed to get YouTube API');
+		console.error('failed to get YouTube api')
 		return;
+	}
+
+	for (let i = 0; i < members.length; ++i) {
+		const member = members[i];
+		try {
+			const res = await api.channels.list({
+				part: [ "snippet" ],
+				id: [ member.yt_id ]
+			});
+
+			if (!res.data.items || res.data.items.length === 0) continue;
+			const ytMember = res.data.items[0];
+			if (!ytMember.snippet) continue;
+			const snippet = ytMember.snippet;
+
+			const updatePromises: Array<Promise<void>> = [];
+			if (snippet.customUrl && member.handle !== snippet.customUrl) {
+				// We await here because insert/update member YT social requires this
+				await updateMemberHandle(member.yt_id, snippet.customUrl);
+				// Also add/update this in the socials
+				if (!member.handle) {
+					updatePromises.push(insertMemberYouTubeSocial(snippet.customUrl));
+				}
+				else {
+					updatePromises.push(updateMemberYouTubeSocial(snippet.customUrl));
+				}
+			}
+			if (snippet.title && member.name !== snippet.title) {
+				updatePromises.push(updateMemberName(member.yt_id, snippet.title));
+			}
+			if (snippet.thumbnails && snippet.thumbnails.default && snippet.thumbnails.default.url) {
+				if (member.yt_pfp_url !== snippet.thumbnails.default.url) {
+					updatePromises.push(updateMemberPfp(member.yt_id, snippet.thumbnails.default.url));
+				}
+			}
+			await Promise.all(updatePromises);
+		}
+		catch (e) {
+			console.log(`YouTube Channel request for '${member} failed.'`);
+			return;
+		}
 	}
 }
