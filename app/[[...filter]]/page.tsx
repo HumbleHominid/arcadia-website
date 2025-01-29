@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default async function Page({ params }: Props) {
   const resolvedParams = await params;
-  const filter = resolvedParams.filter === undefined ? FilterType.Latest : resolvedParams.filter[0];
+  const filter = resolvedParams.filter === undefined ? 'Latest' : resolvedParams.filter[0];
   const getCachedMembers = unstable_cache(
     async () => {
       if (process.env.NODE_ENV === "development") await updateDbMembers();
