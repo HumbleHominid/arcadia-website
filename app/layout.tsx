@@ -52,6 +52,13 @@ export const metadata: Metadata = {
         type: 'image/png',
         width: 1200,
         height: 630
+      },
+      {
+        url: '/images/twitter-4x3.png',
+        secureUrl: '/images/twitter-4x3.png',
+        type: 'image/png',
+        width: 800,
+        height: 600
       }
     ],
     locale: 'en_US',
