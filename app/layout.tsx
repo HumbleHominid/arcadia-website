@@ -7,6 +7,10 @@ import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  title: {
+    template: '%s | Arcadia',
+    default: 'Arcadia'
+  },
   authors: [{name: 'HumbleHominid', url: 'https://github.com/HumbleHominid'}],
   creator: 'HumbleHominid',
   publisher: 'HumbleHominid',

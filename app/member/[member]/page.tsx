@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	const handle = (await params).member.replace('%40', '@');
 	const member = await fetchMemberByHandle(handle);
 	return {
-		title: (member[0] ? member[0].name : 'Arcadian') + ' | Arcadia'
+		title: member[0] ? member[0].name : 'Arcadian'
 	}
 }
 

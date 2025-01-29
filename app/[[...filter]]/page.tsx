@@ -16,7 +16,7 @@ type Props = {
 }
 
 export const metadata: Metadata = {
-  title: "Arcadia"
+  title: 'Home'
 }
 
 export default async function Page({ params }: Props) {
