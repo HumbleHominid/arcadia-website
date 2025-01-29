@@ -28,6 +28,10 @@ export type Member = {
 	uploads_playlist: string;
 }
 
+export type MemberHandle = {
+	handle: string;
+}
+
 export enum FilterType {
 	Latest = "",
 	All = "all",

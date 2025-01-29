@@ -8,10 +8,52 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | ArcadiaSMP",
-    default: "ArcadiaSMP"
+    template: '%s | ArcadiaSMP',
+    default: 'ArcadiaSMP'
   },
-  description: "The official website for ArcadiaSMP!",
+  authors: [{name: 'HumbleHominid', url: 'https://github.com/HumbleHominid'}],
+  creator: 'HumbleHominid',
+  publisher: 'HumbleHominid',
+  applicationName: 'Arcadia SMP Website',
+  keywords:['Arcadia', 'SMP', 'Minecraft Server'],
+  description: 'The official website for Arcadia SMP!',
+  alternates: {
+    canonical: '/'
+  },
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    }
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Arcadia SMP',
+    description: 'The official website for Arcadia SMP!',
+    images: ['/images/twitter.png']
+  },
+  openGraph: {
+    title: 'Arcadia SMP',
+    description: 'The official website for Arcadia SMP!',
+    siteName: 'Arcadia SMP',
+    url: '/',
+    images: [
+      {
+        url: '/images/twitter.png',
+        width: 1440,
+        height: 1440
+      }
+    ],
+    locale: 'en_US',
+    type: 'website'
+  },
 };
 
 export default function RootLayout({

@@ -5,7 +5,8 @@ import {
 	Video,
 	Social,
 	Member,
-	MemberYouTube
+	MemberYouTube,
+	MemberHandle
 } from "@/app/lib/definitions";
 
 export async function fetchMembers(): Promise<Array<Member>> {
@@ -26,6 +27,23 @@ export async function fetchMembers(): Promise<Array<Member>> {
 	catch(err) {
 		console.error('Database Error:', err);
 		throw new Error('Failed to fetch all members.');
+	}
+}
+
+export async function fetchMemberHandles(): Promise<Array<MemberHandle>> {
+	try {
+		const data = await sql<Member>`
+			SELECT
+				handle
+			FROM Members
+			ORDER BY lower(handle) ASC
+		`;
+
+		return data.rows;
+	}
+	catch(err) {
+		console.error('Database Error:', err);
+		throw new Error('Failed to fetch all member\'s handles.');
 	}
 }
 
