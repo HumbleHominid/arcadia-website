@@ -47,9 +47,14 @@ export const metadata: Metadata = {
     url: '/',
     images: [
       {
-        url: '/images/twitter.png',
-        width: 1440,
-        height: 1440
+        url: '/images/og.png',
+        width: 1800,
+        height: 1200
+      },
+      {
+        url: '/images/og-small.png',
+        width: 800,
+        height: 600
       }
     ],
     locale: 'en_US',
