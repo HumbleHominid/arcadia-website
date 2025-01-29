@@ -47,18 +47,11 @@ export const metadata: Metadata = {
     url: '/',
     images: [
       {
-        url: '/images/og.png',
-        secureUrl: '/images/og.png',
+        url: '/images/twitter.png',
+        secureUrl: '/images/twitter.png',
         type: 'image/png',
-        width: 1800,
-        height: 1200
-      },
-      {
-        url: '/images/og-small.png',
-        secureUrl: '/images/og-small.png',
-        type: 'image/png',
-        width: 800,
-        height: 600
+        width: 1200,
+        height: 630
       }
     ],
     locale: 'en_US',
