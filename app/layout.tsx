@@ -48,11 +48,15 @@ export const metadata: Metadata = {
     images: [
       {
         url: '/images/og.png',
+        secureUrl: '/images/og.png',
+        type: 'image/png',
         width: 1800,
         height: 1200
       },
       {
         url: '/images/og-small.png',
+        secureUrl: '/images/og-small.png',
+        type: 'image/png',
         width: 800,
         height: 600
       }
