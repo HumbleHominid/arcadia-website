@@ -36,6 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Arcadia SMP',
+    site: '@Arcadia_SMP',
     description: 'The official website for Arcadia SMP!',
     images: ['/images/twitter.png']
   },
