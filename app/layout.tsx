@@ -10,9 +10,9 @@ export const metadata: Metadata = {
   authors: [{name: 'HumbleHominid', url: 'https://github.com/HumbleHominid'}],
   creator: 'HumbleHominid',
   publisher: 'HumbleHominid',
-  applicationName: 'Arcadia SMP Website',
-  keywords:['Arcadia', 'SMP', 'Minecraft Server'],
-  description: 'The official website for Arcadia SMP!',
+  applicationName: 'Arcadia Website',
+  keywords:['arcadia', 'arcadian', 'minecraft', 'mine', 'craft', 'server', 'smp', 'ArcadiaSMP', 'video', 'videos', 'lets', 'let\'s', 'play'],
+  description: 'The official website for Arcadia!',
   alternates: {
     canonical: '/'
   },
@@ -31,15 +31,15 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Arcadia SMP',
+    title: 'Arcadia',
     site: '@Arcadia_SMP',
-    description: 'The official website for Arcadia SMP!',
+    description: 'The official website for Arcadia!',
     images: ['/images/twitter.png']
   },
   openGraph: {
-    title: 'Arcadia SMP',
-    description: 'The official website for Arcadia SMP!',
-    siteName: 'Arcadia SMP',
+    title: 'Arcadia',
+    description: 'The official website for Arcadia!',
+    siteName: 'Arcadia',
     url: '/',
     images: [
       {
