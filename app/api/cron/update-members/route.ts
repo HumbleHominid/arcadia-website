@@ -13,6 +13,6 @@ export async function GET(req: NextRequest) {
 	}
 	catch (e) {
 		console.error('DB Members cron failure:', e)
-		return NextResponse.json({ok: false});
+		return NextResponse.json({error: 'Unauthorized'}, {status: 500});
 	}
 }

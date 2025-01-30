@@ -138,7 +138,7 @@ export async function updateDbVideos() {
 	}
 	catch (e) {
 		console.error('failed to get YouTube api', e)
-		return;
+		throw e;
 	}
 
 	for (let i = 0; i < members.length; ++i) {
@@ -206,6 +206,7 @@ export async function updateDbVideos() {
 		}
 		catch (e) {
 			console.error(`YouTube playlist or video request for '${member.yt_id} failed.`, e);
+			throw e;
 		}
 	}
 }
@@ -225,7 +226,7 @@ export async function updateDbMembers() {
 	}
 	catch (e) {
 		console.error('failed to get YouTube api', e);
-		return;
+		throw e;
 	}
 
 	for (let i = 0; i < members.length; ++i) {
@@ -270,6 +271,7 @@ export async function updateDbMembers() {
 		}
 		catch (e) {
 			console.log(`YouTube Channel request for '${member} failed.'`, e);
+			throw e;
 		}
 	}
 }
