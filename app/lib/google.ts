@@ -12,7 +12,7 @@ export async function getAuth() {
 		return auth;
 	}
 	catch (e) {
-		console.error('getAuth Failed');
+		console.error('getAuth Failed', e);
 		throw e;
 	}
 }
@@ -26,7 +26,7 @@ export async function getYouTube() {
 		});
 	}
 	catch (e) {
-		console.error('getYouTube Failed');
+		console.error('getYouTube Failed', e);
 		throw e;
 	}
 }
