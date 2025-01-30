@@ -40,6 +40,7 @@ export default async function Page({ params }: Props) {
 
 	const socials = getCachedSocialsForMemberHandle(handle);
 	const videos = getCachedVideosForMember(handle);
+
 	return (
 		<PageLayout>
 			{/* Social Section */}
@@ -50,7 +51,6 @@ export default async function Page({ params }: Props) {
 			</div>
 			{/* Video Section */}
 			<div className="w-full h-min bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
-				{/* TODO: Make skeleton for the suspense */}
 				<Suspense fallback={<VideoListSkeleton />}>
 					<VideoList videos={videos} />
 				</Suspense>

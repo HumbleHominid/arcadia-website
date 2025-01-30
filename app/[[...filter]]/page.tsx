@@ -9,7 +9,7 @@ import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
 import { unstable_cache } from "next/cache";
-import { updateDbMembers, updateDbVideos } from "@/app/lib/actions";
+import { notFound } from "next/navigation";
 
 type Props = {
   params: Promise<{filter: FilterType}>;
@@ -21,10 +21,13 @@ export const metadata: Metadata = {
 
 export default async function Page({ params }: Props) {
   const resolvedParams = await params;
+  const latest = 'Latest'
   const filter = resolvedParams.filter === undefined ? 'Latest' : resolvedParams.filter[0];
+  const validFilters: string[] = [ FilterType.All, FilterType.Arcadia, latest ];
+  if (!validFilters.includes(filter)) notFound();
+
   const getCachedMembers = unstable_cache(
     async () => {
-      if (process.env.NODE_ENV === "development") await updateDbMembers();
       return fetchMembers();
     },
     ['members'],
@@ -32,7 +35,6 @@ export default async function Page({ params }: Props) {
   )
   const getCachedVideos = unstable_cache(
     async (filter: string) => {
-      if (process.env.NODE_ENV === "development") await updateDbVideos();
       switch (filter) {
         case FilterType.All:
           return fetchAllVideos();
