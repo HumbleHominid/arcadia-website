@@ -52,9 +52,9 @@ export default async function Page({ params }: Props) {
   const members = getCachedMembers();
   const videos = getCachedVideos(filter);
   const community = [
-    {src: "/icons/twitter_icon.png", url: "https://x.com/Arcadia_SMP", text: "Twitter/X"},
-    {src: "/icons/bluesky_icon.svg", url: "https://bsky.app/profile/arcadiasmp.bsky.social", text: "Bluesky"},
-    {src: "/icons/discord-mark-blue.svg", url: "https://discord.gg/btwNnKtWQu", text: "Discord"},
+    {src: "/icons/twitter_icon.png", url: "https://x.com/Arcadia_SMP", text: "Arcadia_SMP"},
+    {src: "/icons/bluesky_icon.svg", url: "https://bsky.app/profile/arcadiasmp.bsky.social", text: "arcadiasmp.bsky.social"},
+    {src: "/icons/discord-mark-blue.svg", url: "https://discord.gg/btwNnKtWQu", text: "The Arcadians"},
   ];
   const server = [
     {src: "/icons/arrow-down-tray.svg", url: "https://www.mediafire.com/file/an45poqm8p6ldc3/arcadia-smp-season1-v1.zip/file", text: "Season 1 World Download"},

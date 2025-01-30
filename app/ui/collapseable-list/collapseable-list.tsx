@@ -2,15 +2,8 @@
 
 import { Bars3Icon } from "@heroicons/react/16/solid";
 import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import CollapseableListItem, { CollapseableListItemData } from "@/app/ui/collapseable-list/collapseable-list-item";
 import clsx from "clsx";
-
-export type CollapseableListData = {
-	src: string;
-	url: string;
-	text: string;
-}
 
 export default function CollapseableList({
 	data = [],
@@ -18,7 +11,7 @@ export default function CollapseableList({
 	numColsOnMobile = 1,
 	isExpandedDefault = false,
 }:{
-	data?: Array<CollapseableListData>;
+	data?: Array<CollapseableListItemData>;
 	title: string;
 	numColsOnMobile?: number;
 	isExpandedDefault?: boolean;
@@ -61,22 +54,7 @@ export default function CollapseableList({
 			>
 				{data.map((item, index) => {
 					return (
-						<Link
-							key={index}
-							href={item.url}
-							target={item.url.startsWith('/') ? "_self" : "_blank"}
-							rel="noreferrer noopener"
-							className="flex gap-2 items-center py-0.5 md:py-1 px-1 md:px-2 hover:underline underline-offset-1 decoration-1 hover:bg-slate-100"
-						>
-							<Image
-								src={item.src}
-								width={20}
-								height={20}
-								alt={`${item.text} Image`}
-								className="w-4 md:w-5 h-auto"
-							/>
-							<span className="text-sm md:text-base">{item.text}</span>
-						</Link>
+						<CollapseableListItem key={index} data={item} />
 					)})}
 			</div>
 		</div>
