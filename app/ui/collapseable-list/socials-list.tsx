@@ -38,13 +38,19 @@ export default function SocialsList({
 					socialUrl = '/icons/link.svg';
 			}
 
+			let text: string | undefined = social.url;
+			if (text.endsWith('/')) {
+				text = social.url.substring(0, social.url.length - 1);
+			}
+			text = text.split('/').pop();
+
 			return {
 				src: socialUrl,
 				url: social.url,
-				text: social.type
+				text:	text ? text : social.type
 			}
 		});
 	return (
-		<CollapseableList data={allSocials} title="Socials" />
+		<CollapseableList data={allSocials} isExpandedDefault={true} title="Socials" />
 	);
 }

@@ -15,13 +15,15 @@ export type CollapseableListData = {
 export default function CollapseableList({
 	data = [],
 	title = "",
-	numColsOnMobile = 1
+	numColsOnMobile = 1,
+	isExpandedDefault = false,
 }:{
 	data?: Array<CollapseableListData>;
 	title: string;
 	numColsOnMobile?: number;
+	isExpandedDefault?: boolean;
 }) {
-	const [isExpanded, setIsExpanded] = useState(false);
+	const [isExpanded, setIsExpanded] = useState(isExpandedDefault);
 
 	return (
 		<div
