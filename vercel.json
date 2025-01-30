@@ -1,11 +1,11 @@
 {
 	"crons": [
 		{
-			"path": "/api/db/update-videos",
+			"path": "/api/cron/update-videos",
 			"schedule": "*/10 * * * *"
 		},
 		{
-			"path": "/api/db/update-members",
+			"path": "/api/cron/update-members",
 			"schedule": "0 * * * *"
 		}
 	]
