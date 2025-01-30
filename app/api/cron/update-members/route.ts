@@ -1,20 +1,18 @@
 import { NextResponse, NextRequest } from "next/server";
-import { updateDbVideos } from "@/app/lib/actions";
+import { updateDbMembers } from "@/app/lib/actions";
 
-export const config = {
-  runtime: 'edge',
-}
+export const dynamic = 'force-dynamic';
 
-export default async function handler(req: NextRequest) {
+export async function GET(req: NextRequest) {
 	if (req.headers.get('Authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
 		return NextResponse.json({error: 'Unauthorized'}, {status: 401})
 	}
 	try {
-		await updateDbVideos();
+		await updateDbMembers();
 		return NextResponse.json({ok: true});
 	}
 	catch (e) {
-		console.error('DB Videos cron failure:', e)
+		console.error('DB Members cron failure:', e)
 		return NextResponse.json({ok: false});
 	}
 }
