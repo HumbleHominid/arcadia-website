@@ -27,7 +27,8 @@ export default function Video({
 		}
 		// Strip hashtags if people put them in the title (this is really only here for shorts)
 		const title = data.title
-			.replace(/(^|\W)#(\w+)/g, '');
+			.replace(/#([^0-9]+)/g, '')
+			.trim();
 
 	return (
 		<div className="grid grid-cols-[auto_1fr] py-2 gap-4">
