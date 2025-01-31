@@ -6,7 +6,7 @@
 		},
 		{
 			"path": "/api/cron/update-members",
-			"schedule": "0 * * * *"
+			"schedule": "0 0 * * *"
 		}
 	]
 }
