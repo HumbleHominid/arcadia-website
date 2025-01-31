@@ -26,6 +26,7 @@ export type Member = {
 	yt_id: string;
 	yt_pfp_url: string;
 	uploads_playlist: string;
+	description: string;
 }
 
 export type MemberHandle = {
@@ -46,6 +47,7 @@ export type MembersTable = {
 	yt_id: string;
 	yt_pfp_url: string;
 	uploads_playlist: string;
+	description: string;
 }
 
 export type VideosTable = {

@@ -113,6 +113,19 @@ async function updateMemberUploadsPlaylist(yt_id: string, uploads_playlist: stri
 	}
 }
 
+async function updateMemberDescription(yt_id: string, description: string) {
+	try {
+		await sql`
+			UPDATE Members
+				SET description = ${description}
+				WHERE yt_id = ${yt_id}
+		`;
+	}
+	catch (e) {
+		console.error(`Failed to update description for member '${yt_id}'`, e);
+	}
+}
+
 export async function updateDbVideos() {
 	// Get list of members
 	const members: Array<MemberYouTube> = [];
@@ -222,7 +235,7 @@ export async function updateDbMembers() {
 	}
 	let api: youtube_v3.Youtube;
 	try {
-		api = await getYouTube()
+		api = getYouTube()
 	}
 	catch (e) {
 		console.error('failed to get YouTube api', e);
@@ -266,6 +279,9 @@ export async function updateDbMembers() {
 			}
 			if (contentDetails.relatedPlaylists?.uploads && member.uploads_playlist !== contentDetails.relatedPlaylists.uploads) {
 				updatePromises.push(updateMemberUploadsPlaylist(member.yt_id, contentDetails.relatedPlaylists.uploads));
+			}
+			if (snippet.description && member.description !== snippet.description) {
+				updatePromises.push(updateMemberDescription(member.yt_id, snippet.description));
 			}
 			await Promise.all(updatePromises);
 		}

@@ -7,6 +7,7 @@ import SocialsList from "@/app/ui/collapseable-list/socials-list";
 import CollapseableList from "@/app/ui/collapseable-list/collapseable-list";
 import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
 import { unstable_cache } from "next/cache";
+import MemberDesc from "./member-desc";
 
 type Props = {
 	params: Promise<{member: string}>
@@ -37,17 +38,28 @@ export default async function Page({ params }: Props) {
 		[`${handle}-videos`],
 		{ revalidate: 10 * 60, tags: [`${handle}-videos`]}
 	);
+	const getCachedMemberDetails = unstable_cache(
+		async (handle: string) => {
+			return fetchMemberByHandle(handle);
+		},
+		[`${handle}-details`],
+		{ revalidate: 24 * 60 * 60, tags: [`${handle}-videos`]}
+	);
 
 	const socials = getCachedSocialsForMemberHandle(handle);
 	const videos = getCachedVideosForMember(handle);
+	const members = getCachedMemberDetails(handle);
 
 	return (
 		<PageLayout>
 			{/* Social Section */}
-			<div className="w-full md:w-4/12">
-			<Suspense fallback={<CollapseableList title="Socials" />}>
-				<SocialsList socials={socials} />
-			</Suspense>
+			<div className="flex flex-col gap-1 w-full md:w-4/12">
+				<Suspense fallback={null}>
+					<MemberDesc members={members}/>
+				</Suspense>
+				<Suspense fallback={<CollapseableList title="Socials" />}>
+					<SocialsList socials={socials} />
+				</Suspense>
 			</div>
 			{/* Video Section */}
 			<div className="w-full h-min bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
