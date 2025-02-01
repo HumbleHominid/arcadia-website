@@ -33,7 +33,7 @@ export default function Video({
 	return (
 		<div className="grid grid-cols-[auto_1fr] py-2 gap-4">
 			<Link
-				href={`https://www.youtube.com/watch?v=${data.video_id}`}
+				href={`https://youtu.be/${data.video_id}`}
 				target="_blank"
 				rel="noopener noreferrer"
 				className="self-center"
