@@ -90,7 +90,7 @@ export default function RootLayout({
                 width={1500}
                 height={500}
                 alt="Arcadia Banner Image"
-                className=""
+                className="p-2 md:p-4"
               />
             </Link>
           </div>
