@@ -92,7 +92,7 @@ export default function CollapseableListItem({
 				ref={divRef}
 			>
 				<div
-					className="text-sm md:text-base transition-all ease-in-out duration-[3000ms]"
+					className="text-sm md:text-base transition-[translate] ease-in-out duration-[3000ms]"
 					style={spanStyle}
 				>
 					{data.text}

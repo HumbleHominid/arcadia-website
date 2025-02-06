@@ -18,6 +18,6 @@ export default function MembersList({
 			}
 		});
 	return (
-		<CollapseableList data={allMembers} title="Members" numColsOnMobile={2}/>
+		<CollapseableList data={allMembers} title="Members" />
 	);
 }
