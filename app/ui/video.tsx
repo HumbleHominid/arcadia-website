@@ -11,6 +11,8 @@ export default function Video({
 	const posted = formatDistance(new Date(data.publish_date), new Date(), { addSuffix: true });
 	let duration = data.duration
 		.replace('PT', '')
+		.replace('P', '')
+		.replace('D', ':')
 		.replace('H', ':')
 		.replace('M', ':')
 		.replace('S', '')
@@ -24,6 +26,10 @@ export default function Video({
 		// If the video is less than a minute, prepend a '0:'
 		if (duration.split(':').length === 1) {
 			duration = '0:' + duration;
+		}
+		// If we still have a leading colon something is really wrong so just set the time to 00:00
+		if (duration.charAt(0) === ':') {
+			duration = '00:00';
 		}
 		// Strip hashtags if people put them in the title (this is really only here for shorts)
 		const title = data.title
