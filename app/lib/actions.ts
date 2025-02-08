@@ -1,6 +1,6 @@
 'use server';
 
-import { fetchLatestVideos, fetchMembers, fetchMembersYouTube } from "@/app/lib/data";
+import { fetchLatestVideos, fetchMembers, fetchMembersYouTube, fetchVideosForMemberHandle } from "@/app/lib/data";
 import { getYouTube } from "@/app/lib/google";
 import { Member, MemberYouTube, Video } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
@@ -126,6 +126,18 @@ async function updateMemberDescription(yt_id: string, description: string) {
 	}
 }
 
+async function deleteVideoByVidId(vid_id: string) {
+	try {
+		await sql`
+			DELETE FROM Videos
+				WHERE video_id = ${vid_id}
+		`;
+	}
+	catch (e) {
+		console.error(`Failed to delete video with id ${vid_id}'`, e);
+	}
+}
+
 export async function updateDbVideos() {
 	// Get list of members
 	const members: Array<MemberYouTube> = [];
@@ -137,7 +149,7 @@ export async function updateDbVideos() {
 		return;
 	}
 	// Get latest video for each member
-	const latestVideos: Array<Video> = []
+	const latestVideos: Array<Video> = [];
 	try {
 		latestVideos.push(...(await fetchLatestVideos()));
 	}
@@ -147,7 +159,7 @@ export async function updateDbVideos() {
 	}
 	let api: youtube_v3.Youtube;
 	try {
-		api = await getYouTube();
+		api = getYouTube();
 	}
 	catch (e) {
 		console.error('failed to get YouTube api', e)
@@ -287,6 +299,70 @@ export async function updateDbMembers() {
 		}
 		catch (e) {
 			console.log(`YouTube Channel request for '${member} failed.'`, e);
+			throw e;
+		}
+	}
+}
+
+export async function updateDeletedVideos() {
+	// Get list of members
+	const members: Array<Member> = [];
+	try {
+		// members.push(...(await fetchMembers()));
+		members.push({
+			name: 'HumbleHominid',
+			handle: '@humblehominid',
+			yt_id: 'test',
+			yt_pfp_url: 'test',
+			uploads_playlist: 'test',
+			description: 'test'
+		})
+	}
+	catch (e) {
+		console.error('fetchMembersYouTube failure:', e);
+		return;
+	}
+	// Get most recent videos for members
+	const latestVideos: Map<string, Array<Video>> = new Map<string, Array<Video>>();
+	const dbPromises = members.map(async (member) => {
+		latestVideos.set(member.handle, await fetchVideosForMemberHandle(member.handle))
+	});
+	await Promise.all(dbPromises);
+	let api: youtube_v3.Youtube;
+	try {
+		api = getYouTube();
+	}
+	catch (e) {
+		console.error('failed to get YouTube api', e);
+		throw e;
+	}
+
+	for (let i = 0; i < members.length; ++i) {
+		const member = members[i];
+		if (!latestVideos.has(member.handle)) continue;
+		const vidIds = latestVideos.get(member.handle)?.map((vid) => vid.video_id);
+		if (!vidIds) continue;
+		try {
+			// Try to fetch all the videos for this member
+			console.log(`requesting videos ${vidIds}`)
+			const vidRes = await api.videos.list({
+				part: [ "snippet" ],
+				id: vidIds,
+			});
+			if (!vidRes.data.items || vidRes.data.items.length === 0) continue;
+			console.log(vidRes.data.items.map((item) => item.id))
+			const validVids = vidRes.data.items.map((item) => item.id);
+			// If the video we have in the db (vidIds) is not in the yt response (validVids)
+			// it was either deleted or set to private. so delete it.
+			for (let j = 0; j < vidIds.length; ++j) {
+				const vidId = vidIds[j];
+				if (!validVids.includes(vidId)) {
+					await deleteVideoByVidId(vidId);
+				}
+			}
+		}
+		catch (e) {
+			console.error(`YouTube playlist or video request for '${member.handle} failed.`, e);
 			throw e;
 		}
 	}
