@@ -308,15 +308,7 @@ export async function updateDeletedVideos() {
 	// Get list of members
 	const members: Array<Member> = [];
 	try {
-		// members.push(...(await fetchMembers()));
-		members.push({
-			name: 'HumbleHominid',
-			handle: '@humblehominid',
-			yt_id: 'test',
-			yt_pfp_url: 'test',
-			uploads_playlist: 'test',
-			description: 'test'
-		})
+		members.push(...(await fetchMembers()));
 	}
 	catch (e) {
 		console.error('fetchMembersYouTube failure:', e);
@@ -344,13 +336,11 @@ export async function updateDeletedVideos() {
 		if (!vidIds) continue;
 		try {
 			// Try to fetch all the videos for this member
-			console.log(`requesting videos ${vidIds}`)
 			const vidRes = await api.videos.list({
 				part: [ "snippet" ],
 				id: vidIds,
 			});
 			if (!vidRes.data.items || vidRes.data.items.length === 0) continue;
-			console.log(vidRes.data.items.map((item) => item.id))
 			const validVids = vidRes.data.items.map((item) => item.id);
 			// If the video we have in the db (vidIds) is not in the yt response (validVids)
 			// it was either deleted or set to private. so delete it.
