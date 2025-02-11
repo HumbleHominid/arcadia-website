@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     title: 'Arcadia',
     description: 'The official website for Arcadia!',
     siteName: 'Arcadia',
-    url: '/',
+    url: process.env.VERCEL_PROJECT_PRODUCTION_URL ? process.env.VERCEL_PROJECT_PRODUCTION_URL : 'localhost:3000',
     images: [
       {
         url: '/images/twitter.png',
