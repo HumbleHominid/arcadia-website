@@ -28,7 +28,7 @@ export default async function Page({ params }: Props) {
 
   const getCachedMembers = unstable_cache(
     async () => {
-      return fetchMembers();
+      return await fetchMembers();
     },
     ['members'],
     { revalidate: 24 * 60 * 60, tags: ['members'] } // Make the member's cache stale after 24h
@@ -37,13 +37,13 @@ export default async function Page({ params }: Props) {
     async (filter: string) => {
       switch (filter) {
         case FilterType.All:
-          return fetchAllVideos();
+          return await fetchAllVideos();
         case FilterType.Arcadia:
-          return fetchArcadiaVideos();
+          return await fetchArcadiaVideos();
         // Fallthrough intended
         case FilterType.Latest:
         default:
-          return fetchLatestVideos();
+          return await fetchLatestVideos();
       }
     },
     [`${filter}-videos`],
@@ -60,6 +60,7 @@ export default async function Page({ params }: Props) {
   ];
   const server = [
     {src: "/icons/arrow-down-tray.svg", url: "https://www.mediafire.com/file/an45poqm8p6ldc3/arcadia-smp-season1-v1.zip/file", text: "Season 1 World Download"},
+    {src: "/icons/arrow-down-tray.svg", url: "https://www.mediafire.com/file/rednhdarehr7ftf/arcadia-season2-world-v2.zip/file", text: "Season 2 World Download"},
     {src: "/icons/moddermore-positive.png", url: "https://moddermore.net/list/8a52816c90", text: "Server Mods"},
   ];
   return (
