@@ -28,7 +28,7 @@ export default async function Page({ params }: Props) {
 
   const getCachedMembers = unstable_cache(
     async () => {
-      return fetchMembers();
+      return await fetchMembers();
     },
     ['members'],
     { revalidate: 24 * 60 * 60, tags: ['members'] } // Make the member's cache stale after 24h
@@ -37,13 +37,13 @@ export default async function Page({ params }: Props) {
     async (filter: string) => {
       switch (filter) {
         case FilterType.All:
-          return fetchAllVideos();
+          return await fetchAllVideos();
         case FilterType.Arcadia:
-          return fetchArcadiaVideos();
+          return await fetchArcadiaVideos();
         // Fallthrough intended
         case FilterType.Latest:
         default:
-          return fetchLatestVideos();
+          return await fetchLatestVideos();
       }
     },
     [`${filter}-videos`],

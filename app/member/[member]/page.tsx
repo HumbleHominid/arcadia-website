@@ -26,21 +26,21 @@ export default async function Page({ params }: Props) {
 	const handle = (await params).member.replace('%40', '@');
 	const getCachedSocialsForMemberHandle = unstable_cache(
 		async (handle: string) => {
-			return fetchSocialsForMemberHandle(handle);
+			return await fetchSocialsForMemberHandle(handle);
 		},
 		[`${handle}-socials`],
 		{ revalidate: 24 * 60 * 60, tags: [`${handle}-socials`]}
 	);
 	const getCachedVideosForMember = unstable_cache(
 		async (handle: string) => {
-			return fetchVideosForMemberHandle(handle);
+			return await fetchVideosForMemberHandle(handle);
 		},
 		[`${handle}-videos`],
 		{ revalidate: 10 * 60, tags: [`${handle}-videos`]}
 	);
 	const getCachedMemberDetails = unstable_cache(
 		async (handle: string) => {
-			return fetchMemberByHandle(handle);
+			return await fetchMemberByHandle(handle);
 		},
 		[`${handle}-details`],
 		{ revalidate: 24 * 60 * 60, tags: [`${handle}-videos`]}

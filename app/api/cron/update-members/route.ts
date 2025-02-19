@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { updateDbMembers } from "@/app/lib/actions";
+import { revalidatePath } from "next/cache";
 
 export const dynamic = 'force-dynamic';
 
@@ -9,6 +10,7 @@ export async function GET(req: NextRequest) {
 	}
 	try {
 		await updateDbMembers();
+		revalidatePath('/member/[member]', 'page');
 		return NextResponse.json({ok: true});
 	}
 	catch (e) {
