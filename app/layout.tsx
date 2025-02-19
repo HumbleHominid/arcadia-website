@@ -6,6 +6,8 @@ import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
 
+const metaDescription = 'The official website for Arcadia! Come follow along our Minecraft SMP journey as we create stunning builds and whacky games in our blocky world!';
+
 export const metadata: Metadata = {
   title: {
     template: '%s | Arcadia',
@@ -16,7 +18,7 @@ export const metadata: Metadata = {
   publisher: 'HumbleHominid',
   applicationName: 'Arcadia Website',
   keywords:['arcadia', 'arcadian', 'minecraft', 'mine', 'craft', 'server', 'smp', 'ArcadiaSMP', 'video', 'videos', 'lets', 'let\'s', 'play'],
-  description: 'The official website for Arcadia!',
+  description: metaDescription,
   alternates: {
     canonical: '/'
   },
@@ -37,12 +39,12 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Arcadia',
     site: '@Arcadia_SMP',
-    description: 'The official website for Arcadia!',
+    description: metaDescription,
     images: ['/images/twitter.png']
   },
   openGraph: {
     title: 'Arcadia',
-    description: 'The official website for Arcadia!',
+    description: metaDescription,
     siteName: 'Arcadia',
     url: process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000/',
     images: [
