@@ -60,6 +60,7 @@ export default async function Page({ params }: Props) {
   ];
   const server = [
     {src: "/icons/arrow-down-tray.svg", url: "https://www.mediafire.com/file/an45poqm8p6ldc3/arcadia-smp-season1-v1.zip/file", text: "Season 1 World Download"},
+    {src: "/icons/arrow-down-tray.svg", url: "https://www.mediafire.com/file/rednhdarehr7ftf/arcadia-season2-world-v2.zip/file", text: "Season 2 World Download"},
     {src: "/icons/moddermore-positive.png", url: "https://moddermore.net/list/8a52816c90", text: "Server Mods"},
   ];
   return (
