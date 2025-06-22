@@ -88,8 +88,8 @@ export async function createPosts(data: SocialPostData) {
 				const rt = new RichText({
 					text: post_text,
 				});
+				await rt.detectFacets(client);
 				try {
-					await rt.detectFacets(client);
 					console.log(`posting skeet: ${post_text}`)
 					await client.post({
 						text: rt.text,
