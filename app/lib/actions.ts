@@ -6,6 +6,7 @@ import { Member, Video } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
 import { youtube_v3 } from "googleapis";
 import { createPosts } from "@/app/lib/socials/social-poster";
+import { SocialHandler } from "./socials/social-handler";
 
 type CreateVideoData = {
 	title: string;
@@ -203,15 +204,19 @@ export async function updateDbVideos() {
 			if (!vidsRes.data.items || vidsRes.data.items.length === 0) continue;
 			const vids = vidsRes.data.items;
 			const formattedVids: Array<CreateVideoData> = [];
+			// Get a list of the videos we have record of in the db
+			const memberVidsInDb = await fetchVideosForMemberHandle(member.handle);
+			const vidIdsInDb = memberVidsInDb.map((vid) => vid.video_id);
 			vids.forEach((vid) => {
 				const snippet = vid.snippet;
 				if (!snippet) return;
+				const valOrEmpty = (val: string | null | undefined) => {
+					return val === undefined || val === null ? '' : val;
+				}
+				if (vidIdsInDb.includes(valOrEmpty(vid.id))) return;
 				let is_arcadia_video = false;
 				if (snippet.tags) {
 					is_arcadia_video = snippet.tags.filter((tag) => tag.toLowerCase().includes("arcadia")).length > 0;
-				}
-				const valOrEmpty = (val: string | null | undefined) => {
-					return val === undefined || val === null ? '' : val;
 				}
 				let duration: string = 'PT0H0H0S';
 				if (vid.contentDetails?.duration) {
@@ -228,17 +233,23 @@ export async function updateDbVideos() {
 				});
 			});
 
-			// Finally create the videos for this person
-			const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
 			// Post the video to social media.
-			const postToSocialMedia = formattedVids.filter((vid) => vid.is_arcadia_video).map((vid) => createPosts({
+			const sh = new SocialHandler();
+			await sh.init();
+			const postToSocialMedia = formattedVids
+			.filter((vid) => vid.is_arcadia_video)
+			.map((vid) => createPosts({
 				video_title: vid.title,
 				video_id: vid.video_id,
 				yt_handle: member.handle,
 				description: vid.description,
-			}));
-			await Promise.all(createVideoRequests);
+			},
+			sh
+		));
+			// Finally create the videos for this person
+			const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
 			await Promise.all(postToSocialMedia);
+			await Promise.all(createVideoRequests);
 		}
 		catch (e) {
 			console.error(`YouTube playlist or video request for '${member.yt_id} failed.`, e);
