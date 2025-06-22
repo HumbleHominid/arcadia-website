@@ -168,6 +168,8 @@ export async function updateDbVideos() {
 		console.error('failed to get YouTube api', e);
 		throw e;
 	}
+	// Create a social handler for posting new videos if we need to.
+	const sh = new SocialHandler();
 
 	for (let i = 0; i < members.length; ++i) {
 		const member = members[i];
@@ -233,9 +235,9 @@ export async function updateDbVideos() {
 				});
 			});
 
-			// Post the video to social media.
-			const sh = new SocialHandler();
+			// No need to check if already initialized as subsequent initializations don't do anything
 			await sh.init();
+
 			const postToSocialMedia = formattedVids
 			.filter((vid) => vid.is_arcadia_video)
 			.map((vid) => createPosts({
