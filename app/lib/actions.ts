@@ -14,6 +14,7 @@ type CreateVideoData = {
 	duration: string;
 	uploader_id: string;
 	is_arcadia_video: boolean;
+	description: string;
 }
 
 export async function createVideo(video: CreateVideoData) {
@@ -222,7 +223,8 @@ export async function updateDbVideos() {
 					publish_date: valOrEmpty(snippet.publishedAt),
 					uploader_id: valOrEmpty(snippet.channelId),
 					is_arcadia_video: is_arcadia_video,
-					duration: duration
+					duration: duration,
+					description: valOrEmpty(snippet.description)
 				});
 			});
 
@@ -232,7 +234,8 @@ export async function updateDbVideos() {
 			const postToSocialMedia = formattedVids.filter((vid) => vid.is_arcadia_video).map((vid) => createPosts({
 				video_title: vid.title,
 				video_id: vid.video_id,
-				yt_handle: member.handle
+				yt_handle: member.handle,
+				description: vid.description,
 			}));
 			await Promise.all(createVideoRequests);
 			await Promise.all(postToSocialMedia);

@@ -2,25 +2,46 @@
 
 import { clientCache } from "@/app/lib/socials/client-cache";
 import { fetchSocialsForMemberHandle } from "@/app/lib/data";
-import { RichText } from "@atproto/api";
+import AtpAgent, { AppBskyEmbedExternal, RichText } from "@atproto/api";
 
 type SocialPostData = {
-	video_title: string,
-	video_id: string,
-	yt_handle: string
-}
+	video_title: string;
+	video_id: string;
+	yt_handle: string;
+	description: string;
+};
 
 enum Platform {
 	BSKY = "BlueSky",
 	Twitter = "Twitter/X"
 }
 
-function createPostContents(video_data: SocialPostData, social_handle: string = '') {
+function createPostContents(platform: Platform, video_data: SocialPostData, social_handle: string = '') {
 	let text = video_data.video_title;
 	if (social_handle) text += ` @${social_handle}`
-	text += ` https://www.youtube.com/watch?v=${video_data.video_id}`
+	if (platform === Platform.Twitter) text += ` https://www.youtube.com/watch?v=${video_data.video_id}`
 
 	return text;
+}
+
+async function getBSKYEmbedCard(client: AtpAgent, video_data: SocialPostData) {
+	try {
+		const blob = await fetch(`https://i.ytimg.com/vi/${video_data.video_id}/mqdefault.jpg`).then(r => r.blob());
+		const { data } = await client.uploadBlob(blob, { encoding: "image/jpeg" });
+
+		return {
+			$type: 'app.bsky.embed.external',
+			external: {
+				uri: `https://youtu.be/${video_data.video_id}`,
+				title: video_data.video_title,
+				description: video_data.description,
+				thumb: data.blob
+			}
+		}
+	} catch (e) {
+		console.log(`Failed to produce BSKY Embed Card with err: ${e}`);
+		return;
+	}
 }
 
 export async function createPosts(data: SocialPostData) {
@@ -41,11 +62,11 @@ export async function createPosts(data: SocialPostData) {
 					social_handle = social.url.substring(0, social.url.length - 1);
 				}
 				social_handle = social_handle.split('/').pop();
-				post_text = createPostContents(data, social_handle);
+				post_text = createPostContents(platform, data, social_handle);
 			}
 			// Otherwise, just make the posts text without any tags
 			else {
-				post_text = createPostContents(data);
+				post_text = createPostContents(platform, data);
 			}
 
 			if (platform === Platform.Twitter) {
@@ -61,12 +82,23 @@ export async function createPosts(data: SocialPostData) {
 				}
 			}
 			else if (platform === Platform.BSKY) {
-				// const client = clientCache.get_bsky();
+				const client = await clientCache.get_bsky();
+				if (!client) return;
 				// Have to do some extra formatting work for Bluesky
-				// const rt = new RichText({
-				// 	text: post_text,
-				// });
-				// await rt.detectFacets(client)
+				const rt = new RichText({
+					text: post_text,
+				});
+				try {
+					await rt.detectFacets(client);
+					console.log(`posting skeet: ${post_text}`)
+					await client.post({
+						text: rt.text,
+						facets: rt.facets,
+						embed: await getBSKYEmbedCard(client, data)
+					});
+				} catch (e) {
+					console.log(`Failed to post skeet with err: ${e}`);
+				}
 			}
 		});
 
