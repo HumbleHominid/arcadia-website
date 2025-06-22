@@ -3,9 +3,16 @@ import { TwitterApi } from "twitter-api-v2";
 
 const undefinedToEmpty = (str:string|undefined) => str === undefined ? '' : str;
 
-class ClientCache {
+export class SocialHandler {
 	twitter_client: TwitterApi | undefined = undefined;
 	bsky_client : AtpAgent | undefined = undefined;
+
+	async init() {
+		await Promise.all([
+			this.get_twitter(),
+			this.get_bsky()
+		]);
+	}
 
 	async get_twitter(): Promise<TwitterApi | undefined> {
 		if (this.twitter_client) return this.twitter_client;
@@ -49,5 +56,3 @@ class ClientCache {
 		return this.bsky_client;
 	}
 }
-
-export const clientCache = new ClientCache();

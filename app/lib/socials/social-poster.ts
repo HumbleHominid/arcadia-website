@@ -1,6 +1,6 @@
 'use server';
 
-import { clientCache } from "@/app/lib/socials/client-cache";
+import { SocialHandler } from "@/app/lib/socials/social-handler";
 import { fetchSocialsForMemberHandle } from "@/app/lib/data";
 import AtpAgent, { RichText } from "@atproto/api";
 
@@ -44,7 +44,7 @@ async function getBSKYEmbedCard(client: AtpAgent, video_data: SocialPostData) {
 	}
 }
 
-export async function createPosts(data: SocialPostData) {
+export async function createPosts(data: SocialPostData, handler: SocialHandler) {
 		const socialInfo = await fetchSocialsForMemberHandle(data.yt_handle);
 
 		// Fire and forget intended
@@ -71,7 +71,7 @@ export async function createPosts(data: SocialPostData) {
 			}
 
 			if (platform === Platform.Twitter) {
-				const client = await clientCache.get_twitter();
+				const client = await handler.get_twitter();
 				if (!client) return;
 				try {
 					console.log(`posting tweet: ${post_text}`)
@@ -83,7 +83,7 @@ export async function createPosts(data: SocialPostData) {
 				}
 			}
 			else if (platform === Platform.BSKY) {
-				const client = await clientCache.get_bsky();
+				const client = await handler.get_bsky();
 				if (!client) return;
 				// Have to do some extra formatting work for Bluesky
 				const rt = new RichText({
