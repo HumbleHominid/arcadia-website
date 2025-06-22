@@ -20,9 +20,9 @@ class ClientCache {
 		try {
 			await client.v2.me();
 			this.twitter_client = client;
-			console.log("Twitter successfully authenticated")
+			console.log('Twitter successfully authenticated')
 		} catch (e) {
-			console.log("Twitter failed to authenticate")
+			console.log(`Twitter failed to authenticate with err: ${e}`)
 		}
 		return this.twitter_client;
 	}
@@ -43,7 +43,7 @@ class ClientCache {
 			this.bsky_client = agent
 		}
 		catch (e) {
-			console.log('Bluesky failed to authenticate');
+			console.log(`Bluesky failed to authenticate with err: ${e}`);
 		}
 
 		return this.bsky_client;

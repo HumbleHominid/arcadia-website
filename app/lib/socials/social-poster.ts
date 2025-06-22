@@ -2,7 +2,7 @@
 
 import { clientCache } from "@/app/lib/socials/client-cache";
 import { fetchSocialsForMemberHandle } from "@/app/lib/data";
-import AtpAgent, { AppBskyEmbedExternal, RichText } from "@atproto/api";
+import AtpAgent, { RichText } from "@atproto/api";
 
 type SocialPostData = {
 	video_title: string;
@@ -47,6 +47,7 @@ async function getBSKYEmbedCard(client: AtpAgent, video_data: SocialPostData) {
 export async function createPosts(data: SocialPostData) {
 		const socialInfo = await fetchSocialsForMemberHandle(data.yt_handle);
 
+		// Fire and forget intended
 		[Platform.BSKY, Platform.Twitter].forEach(async (platform) => {
 			let post_text: string = "";
 			const platformInfo = socialInfo.filter((social) => social.type === platform);
@@ -100,10 +101,5 @@ export async function createPosts(data: SocialPostData) {
 					console.log(`Failed to post skeet with err: ${e}`);
 				}
 			}
-		});
-
-
-		// Fire and forget intended.
-		socialInfo.forEach(async (social) => {
 		});
 	}
