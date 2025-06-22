@@ -1,10 +1,11 @@
 'use server';
 
-import { fetchLatestVideos, fetchMembers, fetchMembersYouTube, fetchVideosForMemberHandle } from "@/app/lib/data";
+import { fetchLatestVideos, fetchMembers, fetchVideosForMemberHandle } from "@/app/lib/data";
 import { getYouTube } from "@/app/lib/google";
-import { Member, MemberYouTube, Video } from "@/app/lib/definitions";
+import { Member, Video } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
 import { youtube_v3 } from "googleapis";
+import { createPosts } from "@/app/lib/socials/social-poster";
 
 type CreateVideoData = {
 	title: string;
@@ -140,12 +141,12 @@ async function deleteVideoByVidId(vid_id: string) {
 
 export async function updateDbVideos() {
 	// Get list of members
-	const members: Array<MemberYouTube> = [];
+	const members: Array<Member> = [];
 	try {
-		members.push(...(await fetchMembersYouTube()));
+		members.push(...(await fetchMembers()));
 	}
 	catch (e) {
-		console.error('fetchMembersYouTube failure:', e);
+		console.error('fetchMembers failure:', e);
 		return;
 	}
 	// Get latest video for each member
@@ -162,7 +163,7 @@ export async function updateDbVideos() {
 		api = getYouTube();
 	}
 	catch (e) {
-		console.error('failed to get YouTube api', e)
+		console.error('failed to get YouTube api', e);
 		throw e;
 	}
 
@@ -227,7 +228,14 @@ export async function updateDbVideos() {
 
 			// Finally create the videos for this person
 			const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
+			// Post the video to social media.
+			const postToSocialMedia = formattedVids.filter((vid) => vid.is_arcadia_video).map((vid) => createPosts({
+				video_title: vid.title,
+				video_id: vid.video_id,
+				yt_handle: member.handle
+			}));
 			await Promise.all(createVideoRequests);
+			await Promise.all(postToSocialMedia);
 		}
 		catch (e) {
 			console.error(`YouTube playlist or video request for '${member.yt_id} failed.`, e);
