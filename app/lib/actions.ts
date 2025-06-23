@@ -240,7 +240,7 @@ export async function updateDbVideos() {
 
 			const postToSocialMedia = formattedVids
 			.filter((vid) => {
-				let duration = vid.duration
+				const duration = vid.duration
 				.replace('PT', '')
 				.replace('P', '')
 				.replace('D', ':')
