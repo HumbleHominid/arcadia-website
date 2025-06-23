@@ -4,6 +4,8 @@ import { SocialHandler } from "@/app/lib/socials/social-handler";
 import { fetchSocialsForMemberHandle } from "@/app/lib/data";
 import AtpAgent, { RichText } from "@atproto/api";
 
+const IS_DRY_RUN = process.env.NODE_ENV !== "production" && true;
+
 type SocialPostData = {
 	video_title: string;
 	video_id: string;
@@ -74,10 +76,12 @@ export async function createPosts(data: SocialPostData, handler: SocialHandler) 
 				const client = await handler.get_twitter();
 				if (!client) return;
 				try {
-					console.log(`posting tweet: ${post_text}`)
-					client.v2.tweet({
-						text: post_text
-					});
+					console.log(`posting tweet: ${post_text}`);
+					if (!IS_DRY_RUN) {
+						client.v2.tweet({
+							text: post_text
+						});
+					}
 				} catch (e) {
 					console.log(`Failed to post tweet with err: ${e}`);
 				}
@@ -92,11 +96,13 @@ export async function createPosts(data: SocialPostData, handler: SocialHandler) 
 				await rt.detectFacets(client);
 				try {
 					console.log(`posting skeet: ${post_text}`)
-					await client.post({
-						text: rt.text,
-						facets: rt.facets,
-						embed: await getBSKYEmbedCard(client, data)
-					});
+					if (!IS_DRY_RUN) {
+						await client.post({
+							text: rt.text,
+							facets: rt.facets,
+							embed: await getBSKYEmbedCard(client, data)
+						});
+					}
 				} catch (e) {
 					console.log(`Failed to post skeet with err: ${e}`);
 				}
