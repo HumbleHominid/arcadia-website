@@ -235,11 +235,7 @@ export async function updateDbVideos() {
 				});
 			});
 
-			// No need to check if already initialized as subsequent initializations don't do anything
-			await sh.init();
-
-			const postToSocialMedia = formattedVids
-			.filter((vid) => {
+			const vidsToPost = formattedVids.filter((vid) => {
 				const duration = vid.duration
 				.replace('PT', '')
 				.replace('P', '')
@@ -257,18 +253,23 @@ export async function updateDbVideos() {
 				// If the video is less than a minute, it's likely a short
 				const isShort = duration.split(':').length === 1;
 				return !isShort && vid.is_arcadia_video;
-			})
-			.map((vid) => createPosts({
-				video_title: vid.title,
-				video_id: vid.video_id,
-				yt_handle: member.handle,
-				description: vid.description,
-			},
-			sh
-		));
+			});
+
+			// Only init if we know we are going to be posting videos to social media
+			if (vidsToPost.length > 0 && !sh.isInitialized()) await sh.init();
+
+			const createPostRequsets = vidsToPost.map((vid) => createPosts(
+				{
+					video_title: vid.title,
+					video_id: vid.video_id,
+					yt_handle: member.handle,
+					description: vid.description,
+				},
+				sh
+			));
 			// Finally create the videos for this person
 			const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
-			await Promise.all(postToSocialMedia);
+			await Promise.all(createPostRequsets);
 			await Promise.all(createVideoRequests);
 		}
 		catch (e) {

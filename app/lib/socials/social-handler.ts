@@ -4,15 +4,20 @@ import { TwitterApi } from "twitter-api-v2";
 const undefinedToEmpty = (str:string|undefined) => str === undefined ? '' : str;
 
 export class SocialHandler {
-	twitter_client: TwitterApi | undefined = undefined;
-	bsky_client : AtpAgent | undefined = undefined;
+	private initialized: boolean = false;
+	private twitter_client: TwitterApi | undefined = undefined;
+	private bsky_client : AtpAgent | undefined = undefined;
 
 	async init() {
+		if (this.initialized) return;
 		await Promise.all([
 			this.get_twitter(),
 			this.get_bsky()
 		]);
+		this.initialized = true;
 	}
+
+	isInitialized() { return this.initialized; }
 
 	async get_twitter(): Promise<TwitterApi | undefined> {
 		if (this.twitter_client) return this.twitter_client;
@@ -27,7 +32,7 @@ export class SocialHandler {
 		try {
 			await client.v2.me();
 			this.twitter_client = client;
-			console.log('Twitter successfully authenticated')
+			console.log('Twitter successfully authenticated');
 		} catch (e) {
 			console.log(`Twitter failed to authenticate with err: ${e}`)
 		}
