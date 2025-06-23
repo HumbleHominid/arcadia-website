@@ -239,7 +239,25 @@ export async function updateDbVideos() {
 			await sh.init();
 
 			const postToSocialMedia = formattedVids
-			.filter((vid) => vid.is_arcadia_video)
+			.filter((vid) => {
+				let duration = vid.duration
+				.replace('PT', '')
+				.replace('P', '')
+				.replace('D', ':')
+				.replace('H', ':')
+				.replace('M', ':')
+				.replace('S', '')
+				.split(':')
+				.map((t) => {
+					const s = '00' + t;
+					return s.substring(s.length - 2);
+				})
+				.join(':')
+				.replace(/^0+/,'');
+				// If the video is less than a minute, it's likely a short
+				const isShort = duration.split(':').length === 1;
+				return !isShort && vid.is_arcadia_video;
+			})
 			.map((vid) => createPosts({
 				video_title: vid.title,
 				video_id: vid.video_id,
