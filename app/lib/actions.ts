@@ -88,13 +88,14 @@ async function insertMemberYouTubeSocial(handle: string) {
   }
 }
 
-async function updateMemberYouTubeSocial(member_id: string, handle: string) {
+async function updateMemberYouTubeSocial(yt_id: string, handle: string) {
   try {
     const url = `https://www.youtube.com/${handle}`;
     await sql`
 			UPDATE Socials
 				SET url = ${url}
-				WHERE id = (SELECT id FROM Members WHERE yt_id = ${member_id})
+				WHERE member_id = (SELECT id FROM Members WHERE yt_id = ${yt_id})
+					AND social_type_id = (SELECT id FROM SocialTypes WHERE name = 'YouTube')
 		`;
   } catch (e) {
     console.error(`Failed to update YouTube Social for member '${handle}'`, e);
