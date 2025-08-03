@@ -77,18 +77,18 @@ export default function CollapsableListItem({
       href={data.url}
       target={data.url.startsWith("/") ? "_self" : "_blank"}
       rel="noreferrer noopener"
-      className="flex gap-2 items-center py-0.5 md:py-1 px-1 md:px-2 hover:underline underline-offset-1 decoration-1 hover:bg-slate-100"
+      className="flex items-center gap-2 px-1 py-0.5 decoration-1 underline-offset-1 hover:bg-slate-100 hover:underline md:px-2 md:py-1"
     >
       <Image
         src={data.src}
         width={20}
         height={20}
         alt={`${data.text} Image`}
-        className="w-4 md:w-5 h-auto"
+        className="h-auto w-4 md:w-5"
       />
       <div className="overflow-clip" ref={divRef}>
         <div
-          className="text-sm md:text-base transition-[translate] ease-in-out duration-[3000ms]"
+          className="text-sm transition-[translate] duration-[3000ms] ease-in-out md:text-base"
           style={spanStyle}
         >
           {data.text}

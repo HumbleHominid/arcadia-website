@@ -38,7 +38,7 @@ export default async function Page({ params }: Props) {
       return await fetchMembers();
     },
     ["members"],
-    { revalidate: 24 * 60 * 60, tags: ["members"] } // Make the member's cache stale after 24h
+    { revalidate: 24 * 60 * 60, tags: ["members"] }, // Make the member's cache stale after 24h
   );
   const getCachedVideos = unstable_cache(
     async (filter: string) => {
@@ -54,7 +54,7 @@ export default async function Page({ params }: Props) {
       }
     },
     [`${filter}-videos`],
-    { revalidate: 10 * 60, tags: [`${filter}-videos`] }
+    { revalidate: 10 * 60, tags: [`${filter}-videos`] },
   );
 
   // Try to update the DB with new videos
@@ -99,7 +99,7 @@ export default async function Page({ params }: Props) {
       <Announcement />
       <PageLayout>
         {/* Member and Server Info */}
-        <div className="flex flex-col gap-1 w-full md:w-4/12">
+        <div className="flex w-full flex-col gap-1 md:w-4/12">
           <Suspense fallback={<CollapsableList title="Members" />}>
             <MembersList members={members} />
           </Suspense>
@@ -107,7 +107,7 @@ export default async function Page({ params }: Props) {
           <CollapsableList data={server} title="Server Stuff" />
         </div>
         {/* Video section */}
-        <div className="w-full h-min flex flex-col items-center bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl text-lg">
+        <div className="flex h-min w-full flex-col items-center rounded-sm bg-white text-lg drop-shadow-sm md:drop-shadow-xl">
           {/* Need a context switcher */}
           <VideoFilter />
           {/* List of videos */}

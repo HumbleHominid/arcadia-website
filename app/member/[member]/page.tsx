@@ -33,21 +33,21 @@ export default async function Page({ params }: Props) {
       return await fetchSocialsForMemberHandle(handle);
     },
     [`${handle}-socials`],
-    { revalidate: 24 * 60 * 60, tags: [`${handle}-socials`] }
+    { revalidate: 24 * 60 * 60, tags: [`${handle}-socials`] },
   );
   const getCachedVideosForMember = unstable_cache(
     async (handle: string) => {
       return await fetchVideosForMemberHandle(handle);
     },
     [`${handle}-videos`],
-    { revalidate: 10 * 60, tags: [`${handle}-videos`] }
+    { revalidate: 10 * 60, tags: [`${handle}-videos`] },
   );
   const getCachedMemberDetails = unstable_cache(
     async (handle: string) => {
       return await fetchMemberByHandle(handle);
     },
     [`${handle}-details`],
-    { revalidate: 24 * 60 * 60, tags: [`${handle}-videos`] }
+    { revalidate: 24 * 60 * 60, tags: [`${handle}-videos`] },
   );
 
   const socials = getCachedSocialsForMemberHandle(handle);
@@ -57,7 +57,7 @@ export default async function Page({ params }: Props) {
   return (
     <PageLayout>
       {/* Social Section */}
-      <div className="flex flex-col gap-1 w-full md:w-4/12">
+      <div className="flex w-full flex-col gap-1 md:w-4/12">
         <Suspense fallback={null}>
           <MemberDesc members={members} />
         </Suspense>
@@ -66,7 +66,7 @@ export default async function Page({ params }: Props) {
         </Suspense>
       </div>
       {/* Video Section */}
-      <div className="w-full h-min bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl">
+      <div className="h-min w-full rounded-sm bg-white drop-shadow-sm md:drop-shadow-xl">
         <Suspense fallback={<VideoListSkeleton />}>
           <VideoList videos={videos} />
         </Suspense>

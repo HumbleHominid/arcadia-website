@@ -1,14 +1,18 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-	title: "Not Found"
-}
+  title: "Not Found",
+};
 
 export default function NotFound() {
-	return (
-		<div className="h-96 flex flex-col items-center justify-center relative w-full ">
-			<h1 className="m-auto font-bold text-6xl text-white absolute">404 Resource Not Found</h1>
-			<h1 className="m-auto -z-10 font-bold text-6xl text-slate-900 absolute translate-x-1 translate-y-1">404 Resource Not Found</h1>
-		</div>
-	)
+  return (
+    <div className="relative flex h-96 w-full flex-col items-center justify-center">
+      <h1 className="absolute m-auto text-6xl font-bold text-white">
+        404 Resource Not Found
+      </h1>
+      <h1 className="absolute -z-10 m-auto translate-x-1 translate-y-1 text-6xl font-bold text-slate-900">
+        404 Resource Not Found
+      </h1>
+    </div>
+  );
 }

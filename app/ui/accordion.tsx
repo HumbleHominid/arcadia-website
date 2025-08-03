@@ -18,28 +18,28 @@ export default function Accordion({
   return (
     <div
       className={clsx(
-        "flex flex-col p-1 md:p-2 bg-white rounded-sm drop-shadow-sm md:drop-shadow-md",
+        "flex flex-col rounded-sm bg-white p-1 drop-shadow-sm md:p-2 md:drop-shadow-md",
         {
           "divide-y": isExpanded,
-        }
+        },
       )}
     >
       {/* Title and collapse button */}
       <div
         className={clsx(
-          "flex gap-4 items-center hover:cursor-pointer transition-[padding]",
-          isExpanded ? "pb-1 md:pb-2" : "pb-0"
+          "flex items-center gap-4 transition-[padding] hover:cursor-pointer",
+          isExpanded ? "pb-1 md:pb-2" : "pb-0",
         )}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <Bars3Icon width={20} height={20} className="w-4 md:w-5 h-auto" />
-        <span className="text-base md:text-xl select-none">{title}</span>
+        <Bars3Icon width={20} height={20} className="h-auto w-4 md:w-5" />
+        <span className="select-none text-base md:text-xl">{title}</span>
       </div>
       {/* This thing collapses */}
       <div
         className={clsx(
-          "overflow-hidden divide-y transition-[max-height]",
-          isExpanded ? "max-h-[1000px]" : "max-h-0"
+          "divide-y overflow-hidden transition-[max-height]",
+          isExpanded ? "max-h-[1000px]" : "max-h-0",
         )}
       >
         {children}
