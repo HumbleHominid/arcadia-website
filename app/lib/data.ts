@@ -1,17 +1,17 @@
-'use server';
+"use server";
 
 import { sql } from "@vercel/postgres";
 import {
-	Video,
-	Social,
-	Member,
-	MemberYouTube,
-	MemberHandle
+  Video,
+  Social,
+  Member,
+  MemberYouTube,
+  MemberHandle,
 } from "@/app/lib/definitions";
 
 export async function fetchMembers(): Promise<Array<Member>> {
-	try {
-		const data = await sql<Member>`
+  try {
+    const data = await sql<Member>`
 			SELECT
 				name,
 				handle,
@@ -23,34 +23,32 @@ export async function fetchMembers(): Promise<Array<Member>> {
 			ORDER BY lower(name) ASC
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error('Failed to fetch all members.');
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch all members.");
+  }
 }
 
 export async function fetchMemberHandles(): Promise<Array<MemberHandle>> {
-	try {
-		const data = await sql<Member>`
+  try {
+    const data = await sql<Member>`
 			SELECT
 				handle
 			FROM Members
 			ORDER BY lower(handle) ASC
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error('Failed to fetch all member\'s handles.');
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch all member's handles.");
+  }
 }
 
 export async function fetchAllVideos(): Promise<Array<Video>> {
-	try {
-		const data = await sql<Video>`
+  try {
+    const data = await sql<Video>`
 			SELECT
 				m.name AS uploader_name,
 				m.handle AS uploader_handle,
@@ -66,17 +64,16 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
 			LIMIT 50
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error('Failed to fetch all videos.');
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch all videos.");
+  }
 }
 
 export async function fetchLatestVideos(): Promise<Array<Video>> {
-	try {
-		const data = await sql<Video>`
+  try {
+    const data = await sql<Video>`
 			SELECT
 					m.name AS uploader_name,
 					m.handle AS uploader_handle,
@@ -96,17 +93,16 @@ export async function fetchLatestVideos(): Promise<Array<Video>> {
 			ORDER BY v.publish_date DESC
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error('Failed to fetch all videos.');
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch all videos.");
+  }
 }
 
 export async function fetchArcadiaVideos(): Promise<Array<Video>> {
-	try {
-		const data = await sql<Video>`
+  try {
+    const data = await sql<Video>`
 			SELECT
 				m.name AS uploader_name,
 				m.handle AS uploader_handle,
@@ -123,17 +119,18 @@ export async function fetchArcadiaVideos(): Promise<Array<Video>> {
 			LIMIT 50
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error('Failed to fetch all videos.');
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch all videos.");
+  }
 }
 
-export async function fetchVideosForMemberHandle(handle:string): Promise<Array<Video>> {
-	try {
-		const data = await sql<Video>`
+export async function fetchVideosForMemberHandle(
+  handle: string,
+): Promise<Array<Video>> {
+  try {
+    const data = await sql<Video>`
 			SELECT
 				m.name AS uploader_name,
 				m.handle AS uploader_handle,
@@ -150,17 +147,18 @@ export async function fetchVideosForMemberHandle(handle:string): Promise<Array<V
 			LIMIT 50
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error(`Failed to fetch videos for handle '${handle}'.`);
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error(`Failed to fetch videos for handle '${handle}'.`);
+  }
 }
 
-export async function fetchSocialsForMemberHandle(handle:string): Promise<Array<Social>> {
-	try {
-		const data = await sql<Social>`
+export async function fetchSocialsForMemberHandle(
+  handle: string,
+): Promise<Array<Social>> {
+  try {
+    const data = await sql<Social>`
 			SELECT
 				st.name AS type,
 				s.url
@@ -170,17 +168,18 @@ export async function fetchSocialsForMemberHandle(handle:string): Promise<Array<
 			ORDER BY st.name ASC
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error(`Failed to fetch socials for handle '${handle}'.`);
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error(`Failed to fetch socials for handle '${handle}'.`);
+  }
 }
 
-export async function fetchMemberByHandle(handle: string): Promise<Array<Member>> {
-	try {
-		const data = await sql<Member>`
+export async function fetchMemberByHandle(
+  handle: string,
+): Promise<Array<Member>> {
+  try {
+    const data = await sql<Member>`
 			SELECT
 				name,
 				handle,
@@ -192,27 +191,25 @@ export async function fetchMemberByHandle(handle: string): Promise<Array<Member>
 			WHERE handle = ${handle}
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error(`Failed to fetch member with handle '${handle}'.`);
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error(`Failed to fetch member with handle '${handle}'.`);
+  }
 }
 
 export async function fetchMembersYouTube(): Promise<Array<MemberYouTube>> {
-	try {
-		const data = await sql<MemberYouTube>`
+  try {
+    const data = await sql<MemberYouTube>`
 			SELECT
 				yt_id,
 				uploads_playlist
 			FROM Members
 		`;
 
-		return data.rows;
-	}
-	catch(err) {
-		console.error('Database Error:', err);
-		throw new Error('Failed to fetch member\'s YouTube.');
-	}
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch member's YouTube.");
+  }
 }

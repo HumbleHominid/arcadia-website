@@ -6,21 +6,36 @@ import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
 
-const metaDescription = 'The official website for Arcadia! Come follow along our Minecraft SMP journey as we create stunning builds and whacky games in our blocky world!';
+const metaDescription =
+  "The official website for Arcadia! Come follow along our Minecraft SMP journey as we create stunning builds and whacky games in our blocky world!";
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | Arcadia',
-    default: 'Arcadia'
+    template: "%s | Arcadia",
+    default: "Arcadia",
   },
-  authors: [{name: 'HumbleHominid', url: 'https://github.com/HumbleHominid'}],
-  creator: 'HumbleHominid',
-  publisher: 'HumbleHominid',
-  applicationName: 'Arcadia Website',
-  keywords:['arcadia', 'arcadian', 'minecraft', 'mine', 'craft', 'server', 'smp', 'ArcadiaSMP', 'video', 'videos', 'lets', 'let\'s', 'play'],
+  authors: [{ name: "HumbleHominid", url: "https://github.com/HumbleHominid" }],
+  creator: "HumbleHominid",
+  publisher: "HumbleHominid",
+  applicationName: "Arcadia Website",
+  keywords: [
+    "arcadia",
+    "arcadian",
+    "minecraft",
+    "mine",
+    "craft",
+    "server",
+    "smp",
+    "ArcadiaSMP",
+    "video",
+    "videos",
+    "lets",
+    "let's",
+    "play",
+  ],
   description: metaDescription,
   alternates: {
-    canonical: '/'
+    canonical: "/",
   },
   robots: {
     index: true,
@@ -30,34 +45,36 @@ export const metadata: Metadata = {
       index: true,
       follow: true,
       noimageindex: false,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    }
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Arcadia',
-    site: '@Arcadia_SMP',
+    card: "summary_large_image",
+    title: "Arcadia",
+    site: "@Arcadia_SMP",
     description: metaDescription,
-    images: ['/images/twitter.png']
+    images: ["/images/twitter.png"],
   },
   openGraph: {
-    title: 'Arcadia',
+    title: "Arcadia",
     description: metaDescription,
-    siteName: 'Arcadia',
-    url: process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000/',
+    siteName: "Arcadia",
+    url: process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "http://localhost:3000/",
     images: [
       {
-        url: '/images/twitter.png',
-        secureUrl: '/images/twitter.png',
-        type: 'image/png',
+        url: "/images/twitter.png",
+        secureUrl: "/images/twitter.png",
+        type: "image/png",
         width: 1200,
-        height: 630
-      }
+        height: 630,
+      },
     ],
-    locale: 'en_US',
-    type: 'website'
+    locale: "en_US",
+    type: "website",
   },
 };
 
@@ -68,7 +85,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased w-full grid grid-rows-[1fr] grid-cols-[1fr] justify-items-center`}>
+      <body
+        className={`${inter.className} grid w-full grid-cols-[1fr] grid-rows-[1fr] justify-items-center antialiased`}
+      >
         <Analytics />
         {/* Background image */}
         <Image
@@ -76,17 +95,12 @@ export default function RootLayout({
           width={2560}
           height={1440}
           alt="Arcadia Background Image"
-          className="sticky top-0 -z-10 h-screen min-w-full object-cover row-span-full col-span-full"
+          className="sticky top-0 -z-10 col-span-full row-span-full h-screen min-w-full object-cover"
         />
-        <main className="grid grid-rows-[auto_auto_1fr_auto] items-center min-h-screen max-w-5xl row-span-full col-span-full mx-0 my-auto">
+        <main className="col-span-full row-span-full mx-0 my-auto grid min-h-screen max-w-5xl grid-rows-[auto_auto_1fr_auto] items-center">
           {/* Title Image */}
-          <div
-            className="w-full md:w-8/12 place-self-center"
-          >
-            <Link
-              href="/"
-              className=""
-            >
+          <div className="w-full place-self-center md:w-8/12">
+            <Link href="/" className="">
               <Image
                 src="/images/banner.png"
                 width={1500}

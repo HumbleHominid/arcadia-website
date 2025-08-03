@@ -1,73 +1,72 @@
 export type Social = {
-	type: string; // We handle the conversion in the db query
-	url: string;
-}
-
+  type: string; // We handle the conversion in the db query
+  url: string;
+};
 
 export type Video = {
-	title: string;
-	video_id: string;
-	publish_date: string;
-	uploader_name: string;
-	uploader_handle: string;
-	uploader_id: string;
-	is_arcadia_video: boolean;
-	duration: string;
-}
+  title: string;
+  video_id: string;
+  publish_date: string;
+  uploader_name: string;
+  uploader_handle: string;
+  uploader_id: string;
+  is_arcadia_video: boolean;
+  duration: string;
+};
 
 export type MemberYouTube = {
-	yt_id: string;
-	uploads_playlist: string;
-}
+  yt_id: string;
+  uploads_playlist: string;
+};
 
 export type Member = {
-	name: string;
-	handle: string;
-	yt_id: string;
-	yt_pfp_url: string;
-	uploads_playlist: string;
-	description: string;
-}
+  name: string;
+  handle: string;
+  yt_id: string;
+  yt_pfp_url: string;
+  uploads_playlist: string;
+  description: string;
+};
 
 export type MemberHandle = {
-	handle: string;
-}
+  handle: string;
+};
 
 export enum FilterType {
-	Latest = "",
-	All = "all",
-	Arcadia = "arcadia"
+  Latest = "",
+  All = "all",
+  Arcadia = "arcadia",
 }
 
 // DB Tables
 export type MembersTable = {
-	id: number;
-	name: string;
-	handle: string;
-	yt_id: string;
-	yt_pfp_url: string;
-	uploads_playlist: string;
-	description: string;
-}
+  id: number;
+  name: string;
+  handle: string;
+  yt_id: string;
+  yt_pfp_url: string;
+  uploads_playlist: string;
+  description: string;
+};
 
 export type VideosTable = {
-	id: number;
-	member_id: number;
-	title: string;
-	video_id: string;
-	publish_date: string;
-	arcadia_video: boolean;
-	duration: string;
-}
+  id: number;
+  member_id: number;
+  title: string;
+  video_id: string;
+  publish_date: string;
+  arcadia_video: boolean;
+  duration: string;
+};
 
 export type SocialTypesTable = {
-	id: number;
-	name: string;
-}
+  id: number;
+  name: string;
+};
 
 export type SocialsTable = {
-	id: number;
-	social_type_id: number;
-	member_id: number;
-	url: string;
-}
+  id: number;
+  social_type_id: number;
+  member_id: number;
+  url: string;
+};

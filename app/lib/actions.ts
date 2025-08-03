@@ -104,7 +104,7 @@ async function updateMemberYouTubeSocial(yt_id: string, handle: string) {
 
 async function updateMemberUploadsPlaylist(
   yt_id: string,
-  uploads_playlist: string
+  uploads_playlist: string,
 ) {
   try {
     await sql`
@@ -182,7 +182,7 @@ export async function updateDbVideos() {
         continue;
       const playlistVids = playlistRes.data.items;
       const vidFilter = latestVideos.filter(
-        (vid) => vid.uploader_id === member.yt_id
+        (vid) => vid.uploader_id === member.yt_id,
       );
 
       // List of vid ids we have to further request because we want some info we don't have
@@ -267,8 +267,8 @@ export async function updateDbVideos() {
             yt_handle: member.handle,
             description: vid.description,
           },
-          sh
-        )
+          sh,
+        ),
       );
       // Finally create the videos for this person
       const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
@@ -277,7 +277,7 @@ export async function updateDbVideos() {
     } catch (e) {
       console.error(
         `YouTube playlist or video request for '${member.yt_id} failed.`,
-        e
+        e,
       );
       throw e;
     }
@@ -324,7 +324,7 @@ export async function updateDbMembers() {
           updatePromises.push(insertMemberYouTubeSocial(snippet.customUrl));
         } else {
           updatePromises.push(
-            updateMemberYouTubeSocial(member.yt_id, snippet.customUrl)
+            updateMemberYouTubeSocial(member.yt_id, snippet.customUrl),
           );
         }
       }
@@ -338,7 +338,7 @@ export async function updateDbMembers() {
       ) {
         if (member.yt_pfp_url !== snippet.thumbnails.default.url) {
           updatePromises.push(
-            updateMemberPfp(member.yt_id, snippet.thumbnails.default.url)
+            updateMemberPfp(member.yt_id, snippet.thumbnails.default.url),
           );
         }
       }
@@ -349,13 +349,13 @@ export async function updateDbMembers() {
         updatePromises.push(
           updateMemberUploadsPlaylist(
             member.yt_id,
-            contentDetails.relatedPlaylists.uploads
-          )
+            contentDetails.relatedPlaylists.uploads,
+          ),
         );
       }
       if (snippet.description && member.description !== snippet.description) {
         updatePromises.push(
-          updateMemberDescription(member.yt_id, snippet.description)
+          updateMemberDescription(member.yt_id, snippet.description),
         );
       }
       await Promise.all(updatePromises);
@@ -383,7 +383,7 @@ export async function updateDeletedVideos() {
   const dbPromises = members.map(async (member) => {
     latestVideos.set(
       member.handle,
-      await fetchVideosForMemberHandle(member.handle)
+      await fetchVideosForMemberHandle(member.handle),
     );
   });
   await Promise.all(dbPromises);
@@ -419,7 +419,7 @@ export async function updateDeletedVideos() {
     } catch (e) {
       console.error(
         `YouTube playlist or video request for '${member.handle} failed.`,
-        e
+        e,
       );
       throw e;
     }

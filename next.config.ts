@@ -5,21 +5,21 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: '*.ytimg.com',
-        port: '',
-        pathname: '/**',
-        search: ''
+        protocol: "https",
+        hostname: "*.ytimg.com",
+        port: "",
+        pathname: "/**",
+        search: "",
       },
       {
-        protocol: 'https',
-        hostname: '*.ggpht.com',
-        port: '',
-        pathname: '/**',
-        search: ''
-      }
-    ]
-  }
+        protocol: "https",
+        hostname: "*.ggpht.com",
+        port: "",
+        pathname: "/**",
+        search: "",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
