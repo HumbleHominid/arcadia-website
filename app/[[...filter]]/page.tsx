@@ -4,11 +4,11 @@ import {
   fetchArcadiaVideos,
   fetchLatestVideos,
 } from "@/app/lib/data";
-import CollapseableList from "@/app/ui/collapseable-list/collapseable-list";
+import CollapsableList from "@/app/ui/collapsable-list/collapsable-list";
 import VideoList from "@/app/ui/video-list";
 import PageLayout from "@/app/ui/page-layout";
 import { Suspense } from "react";
-import MembersList from "@/app/ui/collapseable-list/members-list";
+import MembersList from "@/app/ui/collapsable-list/members-list";
 import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
 import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
@@ -100,11 +100,11 @@ export default async function Page({ params }: Props) {
       <PageLayout>
         {/* Member and Server Info */}
         <div className="flex flex-col gap-1 w-full md:w-4/12">
-          <Suspense fallback={<CollapseableList title="Members" />}>
+          <Suspense fallback={<CollapsableList title="Members" />}>
             <MembersList members={members} />
           </Suspense>
-          <CollapseableList data={community} title="Community" />
-          <CollapseableList data={server} title="Server Stuff" />
+          <CollapsableList data={community} title="Community" />
+          <CollapsableList data={server} title="Server Stuff" />
         </div>
         {/* Video section */}
         <div className="w-full h-min flex flex-col items-center bg-white rounded-sm drop-shadow-sm md:drop-shadow-xl text-lg">
