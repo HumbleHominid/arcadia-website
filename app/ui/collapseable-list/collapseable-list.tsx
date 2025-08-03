@@ -1,26 +1,24 @@
-'use client';
+"use client";
 
-import CollapseableListItem, { CollapseableListItemData } from "@/app/ui/collapseable-list/collapseable-list-item";
-import Accordian from "@/app/ui/accordian";
+import CollapseableListItem, {
+  CollapseableListItemData,
+} from "@/app/ui/collapseable-list/collapseable-list-item";
+import Accordion from "@/app/ui/accordion";
 
 export default function CollapseableList({
-	data = [],
-	title = "",
-	isExpandedDefault = false,
-}:{
-	data?: Array<CollapseableListItemData>;
-	title: string;
-	isExpandedDefault?: boolean;
+  data = [],
+  title = "",
+  isExpandedDefault = false,
+}: {
+  data?: Array<CollapseableListItemData>;
+  title: string;
+  isExpandedDefault?: boolean;
 }) {
-	return (
-		<Accordian
-			title={title}
-			isExpandedDefault={isExpandedDefault}
-		>
-		{data.map((item, index) => {
-			return (
-				<CollapseableListItem key={index} data={item} />
-			)})}
-		</Accordian>
-	)
+  return (
+    <Accordion title={title} isExpandedDefault={isExpandedDefault}>
+      {data.map((item, index) => {
+        return <CollapseableListItem key={index} data={item} />;
+      })}
+    </Accordion>
+  );
 }

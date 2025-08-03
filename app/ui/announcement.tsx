@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Accordian from "@/app/ui/accordian";
+import Accordion from "@/app/ui/accordion";
 
 type AnnouncementData = {
   title: string;
@@ -23,7 +23,7 @@ export default function Announcement() {
   return (
     // TODO: Only display the announcement if the event isn't expired
     <div className="w-full px-2">
-      <Accordian title="Announcement" isExpandedDefault={true}>
+      <Accordion title="Announcement" isExpandedDefault={true}>
         <div className="grid md:grid-cols-[1fr_4fr] md:grid-rows-[auto_1fr] grid-rows-[auto_auto_auto] gap-x-4 p-1 md:p-2 bg-white rounded-sm drop-shadow-sm md:drop-shadow-md">
           <Image
             src={data.imgSrc}
@@ -35,7 +35,7 @@ export default function Announcement() {
           <h1 className="text-4xl md:text-6xl font-thin mb-4">{data.title}</h1>
           <p className="text-base md:text-lg">{data.description}</p>
         </div>
-      </Accordian>
+      </Accordion>
     </div>
   );
 }
