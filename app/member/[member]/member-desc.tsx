@@ -84,7 +84,7 @@ export default function MemberDesc({
           alt={`${member.name} profile picture`}
           width={32}
           height={32}
-          className="mr-1 inline-block h-auto w-5 align-top md:mr-1.5 md:w-7"
+          className="mr-1 inline-block h-auto w-8 align-top md:mr-1.5"
         />
         {member.description}
       </p>
