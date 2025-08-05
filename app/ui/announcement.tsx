@@ -30,7 +30,7 @@ export default function Announcement() {
             alt={`${data.title} promo image`}
             width={1587}
             height={2245}
-            className="mr-1 h-auto w-96 self-center md:row-span-2 md:mr-1.5"
+            className="mr-1 h-auto w-full self-center pb-4 md:row-span-2 md:mr-1.5 md:pb-0"
           />
           <h1 className="mb-4 text-4xl font-thin md:text-6xl">{data.title}</h1>
           <p className="text-base md:text-lg">{data.description}</p>

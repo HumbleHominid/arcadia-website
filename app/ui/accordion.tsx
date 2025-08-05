@@ -39,7 +39,7 @@ export default function Accordion({
       <div
         className={clsx(
           "divide-y overflow-hidden transition-[max-height]",
-          isExpanded ? "max-h-[1000px]" : "max-h-0",
+          isExpanded ? "max-h-[1250px]" : "max-h-0",
         )}
       >
         {children}
