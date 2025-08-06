@@ -20,7 +20,7 @@ export default function Accordion({
       className={clsx(
         "flex flex-col rounded-sm bg-white p-1 drop-shadow-sm md:p-2 md:drop-shadow-md",
         {
-          "divide-y": isExpanded,
+          "divide-y divide-gray-200": isExpanded,
         },
       )}
     >
@@ -38,7 +38,7 @@ export default function Accordion({
       {/* This thing collapses */}
       <div
         className={clsx(
-          "divide-y overflow-hidden transition-[max-height]",
+          "divide-y divide-gray-200 overflow-hidden transition-[max-height]",
           isExpanded ? "max-h-[1250px]" : "max-h-0",
         )}
       >
