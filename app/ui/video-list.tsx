@@ -13,7 +13,7 @@ export default function VideoList({
   const allVideos = use(videos);
   if (allVideos.length === 0) notFound();
   return (
-    <div className="flex w-full flex-col divide-y px-2">
+    <div className="flex w-full flex-col divide-y divide-gray-200 px-2">
       {allVideos.map((video) => {
         return <VideoComp key={video.video_id} data={video} />;
       })}
