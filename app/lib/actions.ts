@@ -20,6 +20,7 @@ type CreateVideoData = {
   uploader_id: string;
   is_arcadia_video: boolean;
   description: string;
+  thumbnail_uri: string;
 };
 
 export async function createVideo(video: CreateVideoData) {
@@ -225,6 +226,10 @@ export async function updateDbVideos() {
         if (vid.contentDetails?.duration) {
           duration = vid.contentDetails.duration;
         }
+        let thumbnail_uri: string = `https://i.ytimg.com/vi/${valOrEmpty(vid.id)}/hqdefault.jpg`;
+        if (snippet.thumbnails?.standard?.url) {
+          thumbnail_uri = snippet.thumbnails.standard.url;
+        }
         formattedVids.push({
           title: valOrEmpty(snippet.title),
           video_id: valOrEmpty(vid.id),
@@ -233,6 +238,7 @@ export async function updateDbVideos() {
           is_arcadia_video: is_arcadia_video,
           duration: duration,
           description: valOrEmpty(snippet.description),
+          thumbnail_uri: thumbnail_uri,
         });
       });
 
@@ -259,20 +265,21 @@ export async function updateDbVideos() {
       // Only init if we know we are going to be posting videos to social media
       if (vidsToPost.length > 0 && !sh.isInitialized()) await sh.init();
 
-      const createPostRequsets = vidsToPost.map((vid) =>
+      const createPostRequests = vidsToPost.map((vid) =>
         createPosts(
           {
             video_title: vid.title,
             video_id: vid.video_id,
             yt_handle: member.handle,
             description: vid.description,
+            thumbnail_uri: vid.thumbnail_uri,
           },
           sh,
         ),
       );
       // Finally create the videos for this person
       const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
-      await Promise.all(createPostRequsets);
+      await Promise.all(createPostRequests);
       await Promise.all(createVideoRequests);
     } catch (e) {
       console.error(

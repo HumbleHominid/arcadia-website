@@ -41,7 +41,7 @@ export default function MemberDesc({
   const memberData = use(members);
   if (!memberData || memberData.length < 1) return <></>;
   const member = memberData[0];
-  if (!member.description) return <></>;
+  if (!member.description) member.description = `${member.name} on Arcadia!`;
   const pfp_uri = member.yt_pfp_url ? member.yt_pfp_url : "/icons/user.svg";
 
   const handleClick = () => {
@@ -71,7 +71,7 @@ export default function MemberDesc({
       <p
         ref={pRef}
         className={clsx(
-          "overflow-hidden break-words rounded-sm bg-white p-1 text-sm drop-shadow-sm md:p-2 md:text-lg md:drop-shadow-md",
+          "overflow-hidden break-words rounded-sm bg-white p-1 text-sm drop-shadow-sm md:p-2 md:drop-shadow-md",
           "transition-[max-height] duration-300 ease-in-out",
           {
             "max-h-20 md:max-h-56": !isExpanded,
@@ -84,7 +84,7 @@ export default function MemberDesc({
           alt={`${member.name} profile picture`}
           width={32}
           height={32}
-          className="mr-1 inline-block h-auto w-8 align-top md:mr-1.5"
+          className="float-left mr-1 inline-block h-auto w-8 md:mr-1.5"
         />
         {member.description}
       </p>

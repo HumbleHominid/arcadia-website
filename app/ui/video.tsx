@@ -47,6 +47,7 @@ export default function Video({ data }: { data: VideoData }) {
             width={256}
             height={144}
             className="overflow-hidden align-middle"
+            unoptimized
           />
           {/* The duration stamp */}
           <span className="absolute bottom-0 right-0 mb-1 mr-1 bg-slate-800 bg-opacity-60 px-1 text-xs text-white">

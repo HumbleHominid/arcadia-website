@@ -11,6 +11,7 @@ type SocialPostData = {
   video_id: string;
   yt_handle: string;
   description: string;
+  thumbnail_uri: string;
 };
 
 enum Platform {
@@ -33,9 +34,7 @@ function createPostContents(
 
 async function getBSKYEmbedCard(client: AtpAgent, video_data: SocialPostData) {
   try {
-    const blob = await fetch(
-      `https://i.ytimg.com/vi/${video_data.video_id}/mqdefault.jpg`,
-    ).then((r) => r.blob());
+    const blob = await fetch(video_data.thumbnail_uri).then((r) => r.blob());
     const { data } = await client.uploadBlob(blob, { encoding: "image/jpeg" });
 
     return {
@@ -90,9 +89,15 @@ export async function createPosts(
       try {
         console.log(`posting tweet: ${post_text}`);
         if (!IS_DRY_RUN) {
-          client.v2.tweet({
-            text: post_text,
-          });
+          client.v2
+            .tweet({
+              text: post_text,
+            })
+            .catch((e) => {
+              console.log(
+                `Failed to post tweet with err code ${e.code} and details: ${e.error.detail}`,
+              );
+            });
         }
       } catch (e) {
         console.log(`Failed to post tweet with err: ${e}`);
@@ -106,12 +111,13 @@ export async function createPosts(
       });
       await rt.detectFacets(client);
       try {
+        const bskyEmbedData = await getBSKYEmbedCard(client, data);
         console.log(`posting skeet: ${post_text}`);
         if (!IS_DRY_RUN) {
           await client.post({
             text: rt.text,
             facets: rt.facets,
-            embed: await getBSKYEmbedCard(client, data),
+            embed: bskyEmbedData,
           });
         }
       } catch (e) {
