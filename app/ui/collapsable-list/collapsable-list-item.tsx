@@ -85,6 +85,7 @@ export default function CollapsableListItem({
         height={20}
         alt={`${data.text} Image`}
         className="h-auto w-4 md:w-5"
+        unoptimized
       />
       <div className="overflow-clip" ref={divRef}>
         <div
