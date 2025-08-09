@@ -71,7 +71,7 @@ export default function MemberDesc({
       <p
         ref={pRef}
         className={clsx(
-          "overflow-hidden break-words rounded-sm bg-white p-1 text-sm drop-shadow-sm md:p-2 md:text-lg md:drop-shadow-md",
+          "overflow-hidden break-words rounded-sm bg-white p-1 text-sm drop-shadow-sm md:p-2 md:drop-shadow-md",
           "transition-[max-height] duration-300 ease-in-out",
           {
             "max-h-20 md:max-h-56": !isExpanded,
@@ -84,7 +84,7 @@ export default function MemberDesc({
           alt={`${member.name} profile picture`}
           width={32}
           height={32}
-          className="mr-1 inline-block h-auto w-8 align-top md:mr-1.5"
+          className="float-left mr-1 inline-block h-auto w-8 md:mr-1.5"
         />
         {member.description}
       </p>
