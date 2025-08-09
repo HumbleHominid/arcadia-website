@@ -40,8 +40,8 @@ export default function MemberDesc({
 
   const memberData = use(members);
   if (!memberData || memberData.length < 1) return <></>;
-  const member = memberData[0];
-  if (!member.description) return <></>;
+  let member = memberData[0];
+  if (!member.description) member.description = `${member.name} on Arcadia!`;
   const pfp_uri = member.yt_pfp_url ? member.yt_pfp_url : "/icons/user.svg";
 
   const handleClick = () => {
