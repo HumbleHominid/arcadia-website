@@ -5,7 +5,11 @@ type AnnouncementData = {
   title: string;
   description: string;
   imgSrc: string;
-  endDate: Date;
+  endDate: {
+    year: number;
+    month: number;
+    day: number;
+  };
 };
 
 export default function Announcement() {
@@ -16,9 +20,17 @@ export default function Announcement() {
     description:
       "We are officially organizing our first ever Charity Stream Weekend! Taking place August 16th and 17th, we are going to be raising money for the wonderful charity of Gamer's Outreach. Keep your eyes peeled closer to the date for the exact times and the streaming schedule - we are going to be running some mini events and interacting a whole bunch with the community! If there's anything specific you'd like to see us do on the weekend, including rewards for fundraising goals - drop a suggestion in the ⁠💡-suggestions chat of our Discord. Hope to see you all there and hope everyone is hyped! ",
     imgSrc: "/images/charity_stream_2025.png",
-    endDate: new Date(2025, 8, 18),
+    endDate: {
+      year: 2025,
+      month: 8,
+      day: 18,
+    },
   };
-  if (new Date() > data.endDate) return <></>;
+
+  const endDate = new Date(
+    `${data.endDate.year}-${data.endDate.month}-${data.endDate.day}`,
+  );
+  if (new Date() > endDate) return <></>;
 
   return (
     // TODO: Only display the announcement if the event isn't expired
