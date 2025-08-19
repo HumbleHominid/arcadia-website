@@ -16,6 +16,7 @@ import VideoFilter from "@/app/ui/video-filter/video-filter";
 import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import Announcement from "@/app/ui/announcement";
+import { externalSites as ES } from "@/app/lib/external-sites";
 
 type Props = {
   params: Promise<{ filter: FilterType }>;
@@ -63,34 +64,34 @@ export default async function Page({ params }: Props) {
   const community = [
     {
       src: "/icons/twitter_icon.png",
-      url: "https://x.com/Arcadia_SMP",
+      url: ES.twitter,
       text: "Arcadia_SMP",
     },
     {
       src: "/icons/bluesky_icon.svg",
-      url: "https://bsky.app/profile/arcadiasmp.bsky.social",
+      url: ES.bsky,
       text: "arcadiasmp.bsky.social",
     },
     {
       src: "/icons/discord-mark-blue.svg",
-      url: "https://discord.gg/btwNnKtWQu",
+      url: ES.discord,
       text: "The Arcadians",
     },
   ];
   const server = [
     {
       src: "/icons/arrow-down-tray.svg",
-      url: "https://www.mediafire.com/file/an45poqm8p6ldc3/arcadia-smp-season1-v1.zip/file",
+      url: ES.seasonOneWorldDL,
       text: "Season 1 World Download",
     },
     {
       src: "/icons/arrow-down-tray.svg",
-      url: "https://www.mediafire.com/file/rednhdarehr7ftf/arcadia-season2-world-v2.zip/file",
+      url: ES.seasonTwoWorldDL,
       text: "Season 2 World Download",
     },
     {
       src: "/icons/moddermore-positive.png",
-      url: "https://moddermore.net/list/8a52816c90",
+      url: ES.modList,
       text: "Server Mods",
     },
   ];
