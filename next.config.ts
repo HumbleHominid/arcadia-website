@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { externalSites as ES } from "@/app/lib/external-sites";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -20,6 +21,15 @@ const nextConfig: NextConfig = {
         search: "",
       },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: "/discord",
+        destination: ES.discord,
+        permanent: false,
+      },
+    ];
   },
 };
 
