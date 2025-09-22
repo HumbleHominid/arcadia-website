@@ -1,7 +1,7 @@
 export const externalSites = {
   twitter: "https://x.com/Arcadia_SMP",
   bsky: "https://bsky.app/profile/arcadiasmp.bsky.social",
-  discord: "https://discord.gg/btwNnKtWQu",
+  discord: "https://discord.gg/aXhEpb8XYr",
   seasonOneWorldDL:
     "https://www.mediafire.com/file/an45poqm8p6ldc3/arcadia-smp-season1-v1.zip/file",
   seasonTwoWorldDL:
