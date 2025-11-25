@@ -30,6 +30,23 @@ export async function fetchMembers(): Promise<Array<Member>> {
   }
 }
 
+export async function fetchMembersYouTube(): Promise<Array<MemberYouTube>> {
+  try {
+    const data = await sql<MemberYouTube>`
+			SELECT
+				yt_id,
+				uploads_playlist,
+				handle
+			FROM Members
+		`;
+
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch member's YouTube.");
+  }
+}
+
 export async function fetchMemberHandles(): Promise<Array<MemberHandle>> {
   try {
     const data = await sql<Member>`
@@ -195,21 +212,5 @@ export async function fetchMemberByHandle(
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error(`Failed to fetch member with handle '${handle}'.`);
-  }
-}
-
-export async function fetchMembersYouTube(): Promise<Array<MemberYouTube>> {
-  try {
-    const data = await sql<MemberYouTube>`
-			SELECT
-				yt_id,
-				uploads_playlist
-			FROM Members
-		`;
-
-    return data.rows;
-  } catch (err) {
-    console.error("Database Error:", err);
-    throw new Error("Failed to fetch member's YouTube.");
   }
 }

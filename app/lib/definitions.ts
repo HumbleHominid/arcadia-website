@@ -17,6 +17,7 @@ export type Video = {
 export type MemberYouTube = {
   yt_id: string;
   uploads_playlist: string;
+  handle: string;
 };
 
 export type Member = {

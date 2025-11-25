@@ -1,0 +1,48 @@
+import { unstable_cache } from "next/cache";
+import {
+  fetchMembers,
+  fetchAllVideos,
+  fetchArcadiaVideos,
+  fetchLatestVideos,
+  fetchMembersYouTube,
+} from "@/app/lib/data";
+import { FilterType } from "@/app/lib/definitions";
+
+export const getCachedMembers = function () {
+  return unstable_cache(
+    async () => {
+      return await fetchMembers();
+    },
+    ["members"],
+    { revalidate: false, tags: ["members"] }, // Make the member's cache stale after 24h
+  )();
+};
+
+export const getCachedMembersYouTube = function () {
+  return unstable_cache(
+    async () => {
+      return await fetchMembersYouTube();
+    },
+    ["membersYouTube"],
+    { revalidate: false, tags: ["membersYouTube"] }, // Make the member's cache stale after 24h
+  )();
+};
+
+export const getCachedVideos = function (filter: string) {
+  return unstable_cache(
+    async (filter: string) => {
+      switch (filter) {
+        case FilterType.All:
+          return await fetchAllVideos();
+        case FilterType.Arcadia:
+          return await fetchArcadiaVideos();
+        // Fallthrough intended
+        case FilterType.Latest:
+        default:
+          return await fetchLatestVideos();
+      }
+    },
+    [`${filter}-videos`],
+    { revalidate: false, tags: [`${filter}-videos`] },
+  )(filter);
+};
