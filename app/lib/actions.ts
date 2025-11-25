@@ -379,8 +379,8 @@ export async function updateDbMembers() {
         );
       }
       await Promise.all(updatePromises);
-      revalidateTag("Members");
-      revalidateTag("MembersYouTube");
+      revalidateTag("members");
+      revalidateTag("membersYouTube");
     } catch (e) {
       console.log(`YouTube Channel request for '${member} failed.'`, e);
       throw e;
