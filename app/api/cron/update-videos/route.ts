@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
 import { updateDbVideos } from "@/app/lib/actions";
-import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +12,6 @@ export async function GET(req: NextRequest) {
   }
   try {
     await updateDbVideos();
-    revalidatePath("/[[...filter]]", "page");
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("DB Videos cron failure:", e);

@@ -1,9 +1,3 @@
-import {
-  fetchMembers,
-  fetchAllVideos,
-  fetchArcadiaVideos,
-  fetchLatestVideos,
-} from "@/app/lib/data";
 import CollapsableList from "@/app/ui/collapsable-list/collapsable-list";
 import VideoList from "@/app/ui/video-list";
 import PageLayout from "@/app/ui/page-layout";
@@ -13,10 +7,10 @@ import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
 import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
-import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import Announcement from "@/app/ui/announcement";
 import { externalSites as ES } from "@/app/lib/external-sites";
+import { getCachedMembers, getCachedVideos } from "@/app/lib/cache-methods";
 
 type Props = {
   params: Promise<{ filter: FilterType }>;
@@ -33,30 +27,6 @@ export default async function Page({ params }: Props) {
     resolvedParams.filter === undefined ? "Latest" : resolvedParams.filter[0];
   const validFilters: string[] = [FilterType.All, FilterType.Arcadia, latest];
   if (!validFilters.includes(filter)) notFound();
-
-  const getCachedMembers = unstable_cache(
-    async () => {
-      return await fetchMembers();
-    },
-    ["members"],
-    { revalidate: 24 * 60 * 60, tags: ["members"] }, // Make the member's cache stale after 24h
-  );
-  const getCachedVideos = unstable_cache(
-    async (filter: string) => {
-      switch (filter) {
-        case FilterType.All:
-          return await fetchAllVideos();
-        case FilterType.Arcadia:
-          return await fetchArcadiaVideos();
-        // Fallthrough intended
-        case FilterType.Latest:
-        default:
-          return await fetchLatestVideos();
-      }
-    },
-    [`${filter}-videos`],
-    { revalidate: 10 * 60, tags: [`${filter}-videos`] },
-  );
 
   // Try to update the DB with new videos
   const members = getCachedMembers();

@@ -13,7 +13,6 @@ export async function GET(req: NextRequest) {
   }
   try {
     await updateDbMembers();
-    revalidatePath("/member/[member]", "page");
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("DB Members cron failure:", e);

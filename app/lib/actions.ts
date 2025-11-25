@@ -1,16 +1,21 @@
 "use server";
 
 import {
-  fetchLatestVideos,
   fetchMembers,
+  fetchMembersYouTube,
   fetchVideosForMemberHandle,
 } from "@/app/lib/data";
+import {
+  getCachedMembersYouTube,
+  getCachedVideos,
+} from "@/app/lib/cache-methods";
 import { getYouTube } from "@/app/lib/google";
-import { Member, Video } from "@/app/lib/definitions";
+import { Member, MemberYouTube, Video } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
 import { youtube_v3 } from "googleapis";
 import { createPosts } from "@/app/lib/socials/social-poster";
-import { SocialHandler } from "./socials/social-handler";
+import { SocialHandler } from "@/app/lib/socials/social-handler";
+import { revalidateTag, revalidatePath } from "next/cache";
 
 type CreateVideoData = {
   title: string;
@@ -143,17 +148,17 @@ async function deleteVideoByVidId(vid_id: string) {
 
 export async function updateDbVideos() {
   // Get list of members
-  const members: Array<Member> = [];
+  const members: Array<MemberYouTube> = [];
   try {
-    members.push(...(await fetchMembers()));
+    members.push(...(await getCachedMembersYouTube()));
   } catch (e) {
-    console.error("fetchMembers failure:", e);
+    console.error("fetchMembersYouTube failure:", e);
     return;
   }
   // Get latest video for each member
   const latestVideos: Array<Video> = [];
   try {
-    latestVideos.push(...(await fetchLatestVideos()));
+    latestVideos.push(...(await getCachedVideos("Latest")));
   } catch (e) {
     console.error("fetchLatestVideos failure:", e);
     return;
@@ -167,6 +172,7 @@ export async function updateDbVideos() {
   }
   // Create a social handler for posting new videos if we need to.
   const sh = new SocialHandler();
+  let didUpdate = false;
 
   for (let i = 0; i < members.length; ++i) {
     const member = members[i];
@@ -281,6 +287,8 @@ export async function updateDbVideos() {
       const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
       await Promise.all(createPostRequests);
       await Promise.all(createVideoRequests);
+
+      didUpdate = true;
     } catch (e) {
       console.error(
         `YouTube playlist or video request for '${member.yt_id} failed.`,
@@ -288,6 +296,11 @@ export async function updateDbVideos() {
       );
       throw e;
     }
+  }
+
+  if (didUpdate) {
+    // Revalidate the cached videos
+    revalidatePath("/[[...filter]]", "page");
   }
 }
 
@@ -366,6 +379,8 @@ export async function updateDbMembers() {
         );
       }
       await Promise.all(updatePromises);
+      revalidateTag("Members");
+      revalidateTag("MembersYouTube");
     } catch (e) {
       console.log(`YouTube Channel request for '${member} failed.'`, e);
       throw e;
@@ -375,9 +390,9 @@ export async function updateDbMembers() {
 
 export async function updateDeletedVideos() {
   // Get list of members
-  const members: Array<Member> = [];
+  const members: Array<MemberYouTube> = [];
   try {
-    members.push(...(await fetchMembers()));
+    members.push(...(await fetchMembersYouTube()));
   } catch (e) {
     console.error("fetchMembersYouTube failure:", e);
     return;
@@ -402,6 +417,8 @@ export async function updateDeletedVideos() {
     throw e;
   }
 
+  let didDelete = false;
+
   for (let i = 0; i < members.length; ++i) {
     const member = members[i];
     if (!latestVideos.has(member.handle)) continue;
@@ -421,6 +438,7 @@ export async function updateDeletedVideos() {
         const vidId = vidIds[j];
         if (!validVids.includes(vidId)) {
           await deleteVideoByVidId(vidId);
+          didDelete = true;
         }
       }
     } catch (e) {
@@ -430,5 +448,9 @@ export async function updateDeletedVideos() {
       );
       throw e;
     }
+  }
+  // Revalidate the cached videos
+  if (didDelete) {
+    revalidatePath("/[[...filter]]", "page");
   }
 }
