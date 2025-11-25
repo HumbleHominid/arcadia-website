@@ -10,7 +10,12 @@ import {
   getCachedVideos,
 } from "@/app/lib/cache-methods";
 import { getYouTube } from "@/app/lib/google";
-import { Member, MemberYouTube, Video } from "@/app/lib/definitions";
+import {
+  FilterType,
+  Member,
+  MemberYouTube,
+  Video,
+} from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
 import { youtube_v3 } from "googleapis";
 import { createPosts } from "@/app/lib/socials/social-poster";
@@ -300,7 +305,15 @@ export async function updateDbVideos() {
 
   if (didUpdate) {
     // Revalidate the cached videos
-    revalidatePath("/[[...filter]]", "page");
+    for (const filter of [
+      FilterType.All,
+      FilterType.Arcadia,
+      FilterType.Latest,
+      "Latest",
+    ]) {
+      console.log(`Revalidating tag '${filter}-videos'`);
+      revalidateTag(`${filter}-videos`);
+    }
   }
 }
 
@@ -381,6 +394,7 @@ export async function updateDbMembers() {
       await Promise.all(updatePromises);
       revalidateTag("members");
       revalidateTag("membersYouTube");
+      console.log("Revalidated tags 'members' and 'membersYouTube'");
     } catch (e) {
       console.log(`YouTube Channel request for '${member} failed.'`, e);
       throw e;
@@ -451,6 +465,15 @@ export async function updateDeletedVideos() {
   }
   // Revalidate the cached videos
   if (didDelete) {
-    revalidatePath("/[[...filter]]", "page");
+    // Revalidate the cached videos
+    for (const filter of [
+      FilterType.All,
+      FilterType.Arcadia,
+      FilterType.Latest,
+      "Latest",
+    ]) {
+      console.log(`Revalidating tag '${filter}-videos'`);
+      revalidateTag(`${filter}-videos`);
+    }
   }
 }
