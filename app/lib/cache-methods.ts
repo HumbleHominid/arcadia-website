@@ -11,6 +11,7 @@ import { FilterType } from "@/app/lib/definitions";
 export const getCachedMembers = function () {
   return unstable_cache(
     async () => {
+      console.log("Fetching members");
       return await fetchMembers();
     },
     ["members"],
@@ -21,6 +22,7 @@ export const getCachedMembers = function () {
 export const getCachedMembersYouTube = function () {
   return unstable_cache(
     async () => {
+      console.log("Fetching members' YouTube");
       return await fetchMembersYouTube();
     },
     ["membersYouTube"],
@@ -31,6 +33,7 @@ export const getCachedMembersYouTube = function () {
 export const getCachedVideos = function (filter: string) {
   return unstable_cache(
     async (filter: string) => {
+      console.log(`Fetching videos with filter: '${filter}'`);
       switch (filter) {
         case FilterType.All:
           return await fetchAllVideos();

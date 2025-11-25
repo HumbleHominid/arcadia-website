@@ -146,6 +146,7 @@ export async function fetchArcadiaVideos(): Promise<Array<Video>> {
 export async function fetchVideosForMemberHandle(
   handle: string,
 ): Promise<Array<Video>> {
+  console.log("Fetching videos for handle:", handle);
   try {
     const data = await sql<Video>`
 			SELECT
