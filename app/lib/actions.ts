@@ -20,7 +20,7 @@ import { sql } from "@vercel/postgres";
 import { youtube_v3 } from "googleapis";
 import { createPosts } from "@/app/lib/socials/social-poster";
 import { SocialHandler } from "@/app/lib/socials/social-handler";
-import { revalidateTag, revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 type CreateVideoData = {
   title: string;
@@ -316,18 +316,25 @@ export async function updateDbVideos() {
   }
 
   if (didUpdate) {
-    // Revalidate the cached videos
-    // for (const filter of [
-    //   FilterType.All,
-    //   FilterType.Arcadia,
-    //   FilterType.Latest,
-    //   "Latest",
-    // ]) {
-    //   console.log(`Revalidating tag '${filter}-videos'`);
-    //   revalidateTag(`${filter}-videos`);
-    // }
-    revalidateTag("update-db-videos");
-    console.log("Revalidated tag 'update-db-videos'");
+    // Revalidate the cached videos for all filter variations so
+    // `getCachedVideos(filter)` entries are invalidated.
+    const filters = [FilterType.All, FilterType.Arcadia, "Latest"];
+    for (const filter of filters) {
+      console.log(`Revalidating tag '${filter}-videos'`);
+      try {
+        revalidateTag(`${filter}-videos`);
+      } catch (e) {
+        console.warn(`Failed to revalidate tag '${filter}-videos'`, e);
+      }
+    }
+
+    // Also revalidate the tag used by `getCachedLatestVideos`.
+    try {
+      revalidateTag("update-db-videos");
+      console.log("Revalidated tag 'update-db-videos'");
+    } catch (e) {
+      console.warn("Failed to revalidate tag 'update-db-videos'", e);
+    }
   }
 }
 

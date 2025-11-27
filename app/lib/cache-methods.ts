@@ -15,7 +15,7 @@ export const getCachedMembers = function () {
       return await fetchMembers();
     },
     ["members"],
-    { revalidate: false, tags: ["members"] }, // Make the member's cache stale after 24h
+    { revalidate: 24 * 60 * 60, tags: ["members"] }, // Make the member's cache stale after 24h
   )();
 };
 
@@ -26,7 +26,7 @@ export const getCachedMembersYouTube = function () {
       return await fetchMembersYouTube();
     },
     ["membersYouTube"],
-    { revalidate: false, tags: ["membersYouTube"] }, // Make the member's cache stale after 24h
+    { revalidate: 24 * 60 * 60, tags: ["membersYouTube"] }, // Make the member's cache stale after 24h
   )();
 };
 
@@ -46,7 +46,7 @@ export const getCachedVideos = function (filter: string) {
       }
     },
     [`${filter}-videos`],
-    { revalidate: false, tags: [`${filter}-videos`] },
+    { revalidate: 24 * 60 * 60, tags: [`${filter}-videos`] },
   )(filter);
 };
 
@@ -57,6 +57,6 @@ export const getCachedLatestVideos = function () {
       return await fetchLatestVideos();
     },
     ["update-db-videos"],
-    { revalidate: false, tags: ["update-db-videos"] }, // Make the latest videos cache stale after 1h
+    { revalidate: 24 * 60 * 60, tags: ["update-db-videos"] }, // Make the latest videos cache stale after 24h
   )();
 };
