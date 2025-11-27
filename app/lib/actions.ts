@@ -194,6 +194,15 @@ export async function updateDbVideos() {
       if (!playlistRes.data.items || playlistRes.data.items.length === 0)
         continue;
       const playlistVids = playlistRes.data.items;
+      playlistVids.sort((a, b) => {
+        const aDate = a.snippet?.publishedAt
+          ? new Date(a.snippet.publishedAt).getTime()
+          : 0;
+        const bDate = b.snippet?.publishedAt
+          ? new Date(b.snippet.publishedAt).getTime()
+          : 0;
+        return bDate - aDate;
+      });
       const vidFilter = latestVideos.filter(
         (vid) => vid.uploader_id === member.yt_id,
       );
