@@ -152,6 +152,7 @@ async function deleteVideoByVidId(vid_id: string) {
 }
 
 export async function updateDbVideos() {
+  console.log("Updating DB Videos...");
   // Get list of members
   const members: Array<MemberYouTube> = [];
   try {
@@ -208,6 +209,10 @@ export async function updateDbVideos() {
       }
 
       if (vidsToRequest.length === 0) continue;
+      console.log(
+        `Found ${vidsToRequest.length} new videos for member '${member.handle}'\n`,
+        vidsToRequest,
+      );
 
       const vidsRes = await api.videos.list({
         part: ["snippet,contentDetails"],
