@@ -7,7 +7,7 @@ import {
 } from "@/app/lib/data";
 import {
   getCachedMembersYouTube,
-  getCachedVideos,
+  getCachedLatestVideos,
 } from "@/app/lib/cache-methods";
 import { getYouTube } from "@/app/lib/google";
 import {
@@ -164,7 +164,7 @@ export async function updateDbVideos() {
   // Get latest video for each member
   const latestVideos: Array<Video> = [];
   try {
-    latestVideos.push(...(await getCachedVideos("Latest")));
+    latestVideos.push(...(await getCachedLatestVideos()));
   } catch (e) {
     console.error("fetchLatestVideos failure:", e);
     return;
@@ -326,8 +326,8 @@ export async function updateDbVideos() {
     //   console.log(`Revalidating tag '${filter}-videos'`);
     //   revalidateTag(`${filter}-videos`);
     // }
-    revalidatePath("[[...filter]]/page");
-    console.log("Revalidated path '[[...filter]]/page'");
+    revalidateTag("update-db-videos");
+    console.log("Revalidated tag 'update-db-videos'");
   }
 }
 
