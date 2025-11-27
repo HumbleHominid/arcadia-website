@@ -20,7 +20,7 @@ import { sql } from "@vercel/postgres";
 import { youtube_v3 } from "googleapis";
 import { createPosts } from "@/app/lib/socials/social-poster";
 import { SocialHandler } from "@/app/lib/socials/social-handler";
-import { revalidateTag } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 
 type CreateVideoData = {
   title: string;
@@ -317,15 +317,17 @@ export async function updateDbVideos() {
 
   if (didUpdate) {
     // Revalidate the cached videos
-    for (const filter of [
-      FilterType.All,
-      FilterType.Arcadia,
-      FilterType.Latest,
-      "Latest",
-    ]) {
-      console.log(`Revalidating tag '${filter}-videos'`);
-      revalidateTag(`${filter}-videos`);
-    }
+    // for (const filter of [
+    //   FilterType.All,
+    //   FilterType.Arcadia,
+    //   FilterType.Latest,
+    //   "Latest",
+    // ]) {
+    //   console.log(`Revalidating tag '${filter}-videos'`);
+    //   revalidateTag(`${filter}-videos`);
+    // }
+    revalidatePath("[[...filter]]/page");
+    console.log("Revalidated path '[[...filter]]/page'");
   }
 }
 
