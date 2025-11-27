@@ -20,7 +20,7 @@ import { sql } from "@vercel/postgres";
 import { youtube_v3 } from "googleapis";
 import { createPosts } from "@/app/lib/socials/social-poster";
 import { SocialHandler } from "@/app/lib/socials/social-handler";
-import { revalidateTag, revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 type CreateVideoData = {
   title: string;
@@ -218,6 +218,13 @@ export async function updateDbVideos() {
         part: ["snippet,contentDetails"],
         id: vidsToRequest,
       });
+      {
+        const gcpVidIds = vidsRes.data.items?.map((vid) => vid.id) || [];
+        console.log(
+          `Fetched details for ${gcpVidIds.length} videos from YouTube GCP for member '${member.handle}'\n`,
+          gcpVidIds,
+        );
+      }
 
       if (!vidsRes.data.items || vidsRes.data.items.length === 0) continue;
       const vids = vidsRes.data.items;
