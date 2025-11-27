@@ -49,3 +49,14 @@ export const getCachedVideos = function (filter: string) {
     { revalidate: false, tags: [`${filter}-videos`] },
   )(filter);
 };
+
+export const getCachedLatestVideos = function () {
+  return unstable_cache(
+    async () => {
+      console.log("Fetching latest videos");
+      return await fetchLatestVideos();
+    },
+    ["update-db-videos"],
+    { revalidate: false, tags: ["update-db-videos"] }, // Make the latest videos cache stale after 1h
+  )();
+};
