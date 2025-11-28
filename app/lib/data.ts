@@ -89,7 +89,7 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
   }
 }
 
-export async function fetchLatest10VideosForEachMember(): Promise<
+export async function fetchLatestVideosForEachMember(): Promise<
   Array<VideoIDHandle>
 > {
   try {
@@ -104,14 +104,14 @@ export async function fetchLatest10VideosForEachMember(): Promise<
 				FROM videos
 			) v
 			JOIN members m ON v.member_id = m.id
-			WHERE v.rn <= 10
+			WHERE v.rn <= 15
 			ORDER BY m.handle, v.rn
 		`;
 
     return data.rows;
   } catch (err) {
     console.error("Database Error:", err);
-    throw new Error("Failed to fetch latest 10 videos for each member.");
+    throw new Error("Failed to fetch latest 15 videos for each member.");
   }
 }
 
