@@ -7,7 +7,7 @@ import {
 } from "@/app/lib/data";
 import {
   getCachedMembersYouTube,
-  getCachedLatestVideos,
+  getCachedLatestVideoIDHandles,
 } from "@/app/lib/cache-methods";
 import { getYouTube } from "@/app/lib/google";
 import {
@@ -15,6 +15,7 @@ import {
   Member,
   MemberYouTube,
   Video,
+  VideoIDHandle,
 } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
 import { youtube_v3 } from "googleapis";
@@ -162,9 +163,9 @@ export async function updateDbVideos() {
     return;
   }
   // Get latest video for each member
-  const latestVideos: Array<Video> = [];
+  const latestVideos: Array<VideoIDHandle> = [];
   try {
-    latestVideos.push(...(await getCachedLatestVideos()));
+    latestVideos.push(...(await getCachedLatestVideoIDHandles()));
   } catch (e) {
     console.error("fetchLatestVideos failure:", e);
     return;
@@ -207,15 +208,18 @@ export async function updateDbVideos() {
         (vid) => vid.uploader_id === member.yt_id,
       );
 
-      // List of vid ids we have to further request because we want some info we don't have
-      const vidsToRequest: Array<string> = [];
-      for (let j = 0; j < playlistVids.length; ++j) {
-        const vidId = playlistVids[j].snippet?.resourceId?.videoId;
-        if (!vidId) continue;
-        if (vidFilter.length !== 0 && vidFilter[0].video_id === vidId) break;
+      const vidsInDb = vidFilter.map((vid) => vid.video_id);
 
-        vidsToRequest.push(vidId);
-      }
+      // List of vid ids we have to further request because we want some info we don't have
+      const vidsToRequest: Array<string> = playlistVids
+        .filter((playlist) => {
+          const vidId = playlist.snippet?.resourceId?.videoId;
+          if (!vidId) return false;
+          return !vidsInDb.includes(vidId);
+        })
+        .map((playlist) => {
+          return playlist.snippet?.resourceId?.videoId || "";
+        });
 
       if (vidsToRequest.length === 0) continue;
       console.log(
@@ -339,10 +343,10 @@ export async function updateDbVideos() {
 
     // Also revalidate the tag used by `getCachedLatestVideos`.
     try {
-      revalidateTag("update-db-videos");
-      console.log("Revalidated tag 'update-db-videos'");
+      revalidateTag("latest-video-id-handles");
+      console.log("Revalidated tag 'latest-video-id-handles'");
     } catch (e) {
-      console.warn("Failed to revalidate tag 'update-db-videos'", e);
+      console.warn("Failed to revalidate tag 'latest-video-id-handles'", e);
     }
   }
 }
@@ -505,5 +509,7 @@ export async function updateDeletedVideos() {
       console.log(`Revalidating tag '${filter}-videos'`);
       revalidateTag(`${filter}-videos`);
     }
+    console.log("Revalidating tag 'latest-video-id-handles'");
+    revalidateTag("latest-video-id-handles");
   }
 }

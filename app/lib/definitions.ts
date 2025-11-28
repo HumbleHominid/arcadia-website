@@ -14,6 +14,12 @@ export type Video = {
   duration: string;
 };
 
+export type VideoIDHandle = {
+  video_id: string;
+  uploader_id: string;
+  uploader_handle: string;
+};
+
 export type MemberYouTube = {
   yt_id: string;
   uploads_playlist: string;
