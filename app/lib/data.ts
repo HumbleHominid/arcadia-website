@@ -7,6 +7,7 @@ import {
   Member,
   MemberYouTube,
   MemberHandle,
+  VideoIDHandle,
 } from "@/app/lib/definitions";
 
 export async function fetchMembers(): Promise<Array<Member>> {
@@ -85,6 +86,32 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error("Failed to fetch all videos.");
+  }
+}
+
+export async function fetchLatest10VideosForEachMember(): Promise<
+  Array<VideoIDHandle>
+> {
+  try {
+    const data = await sql<VideoIDHandle>`
+			SELECT
+			v.video_id,
+			m.handle AS uploader_handle,
+			m.yt_id AS uploader_id
+			FROM (
+				SELECT video_id, member_id,
+					ROW_NUMBER() OVER (PARTITION BY member_id ORDER BY publish_date DESC) AS rn
+				FROM videos
+			) v
+			JOIN members m ON v.member_id = m.id
+			WHERE v.rn <= 10
+			ORDER BY m.handle, v.rn
+		`;
+
+    return data.rows;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch latest 10 videos for each member.");
   }
 }
 
