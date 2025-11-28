@@ -211,6 +211,8 @@ export async function updateDbVideos() {
         .map((playlist) => {
           return playlist.snippet?.resourceId?.videoId || "";
         });
+      console.log(vidsInDb);
+      console.log(vidsToRequest);
 
       if (vidsToRequest.length === 0) continue;
       console.log(
@@ -222,15 +224,13 @@ export async function updateDbVideos() {
         part: ["snippet,contentDetails"],
         id: vidsToRequest,
       });
-      {
-        const gcpVidIds = vidsRes.data.items?.map((vid) => vid.id) || [];
-        console.log(
-          `Fetched details for ${gcpVidIds.length} videos from YouTube GCP for member '${member.handle}'\n`,
-          gcpVidIds,
-        );
-      }
-
       if (!vidsRes.data.items || vidsRes.data.items.length === 0) continue;
+      const gcpVidIds = vidsRes.data.items?.map((vid) => vid.id) || [];
+      console.log(
+        `Fetched details for ${gcpVidIds.length} videos from YouTube GCP for member '${member.handle}'\n`,
+        gcpVidIds,
+      );
+
       const vids = vidsRes.data.items;
       const formattedVids: Array<CreateVideoData> = [];
       // Get a list of the videos we have record of in the db
