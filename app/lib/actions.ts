@@ -195,15 +195,6 @@ export async function updateDbVideos() {
       if (!playlistRes.data.items || playlistRes.data.items.length === 0)
         continue;
       const playlistVids = playlistRes.data.items;
-      playlistVids.sort((a, b) => {
-        const aDate = a.snippet?.publishedAt
-          ? new Date(a.snippet.publishedAt).getTime()
-          : 0;
-        const bDate = b.snippet?.publishedAt
-          ? new Date(b.snippet.publishedAt).getTime()
-          : 0;
-        return bDate - aDate;
-      });
       const vidFilter = latestVideos.filter(
         (vid) => vid.uploader_id === member.yt_id,
       );
@@ -251,7 +242,12 @@ export async function updateDbVideos() {
         const valOrEmpty = (val: string | null | undefined) => {
           return val === undefined || val === null ? "" : val;
         };
-        if (vidIdsInDb.includes(valOrEmpty(vid.id))) return;
+        if (vidIdsInDb.includes(valOrEmpty(vid.id))) {
+          console.log(
+            `Video with id '${valOrEmpty(vid.id)}' already in DB, skipping.`,
+          );
+          return;
+        }
         let is_arcadia_video = false;
         if (snippet.tags) {
           is_arcadia_video =
