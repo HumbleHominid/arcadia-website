@@ -211,8 +211,6 @@ export async function updateDbVideos() {
         .map((playlist) => {
           return playlist.snippet?.resourceId?.videoId || "";
         });
-      console.log(vidsInDb);
-      console.log(vidsToRequest);
 
       if (vidsToRequest.length === 0) continue;
       console.log(

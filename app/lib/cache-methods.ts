@@ -5,7 +5,7 @@ import {
   fetchArcadiaVideos,
   fetchLatestVideos,
   fetchMembersYouTube,
-  fetchLatest10VideosForEachMember,
+  fetchLatestVideosForEachMember,
 } from "@/app/lib/data";
 import { FilterType } from "@/app/lib/definitions";
 
@@ -66,7 +66,7 @@ export const getCachedLatestVideoIDHandles = function () {
   return unstable_cache(
     async () => {
       console.log("Fetching latest video ID handles");
-      return await fetchLatest10VideosForEachMember();
+      return await fetchLatestVideosForEachMember();
     },
     ["latest-video-id-handles"],
     { revalidate: 24 * 60 * 60, tags: ["latest-video-id-handles"] }, // Make the latest video ID handles cache stale after 24h
