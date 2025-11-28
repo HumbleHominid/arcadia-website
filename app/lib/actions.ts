@@ -32,6 +32,7 @@ type CreateVideoData = {
   is_arcadia_video: boolean;
   description: string;
   thumbnail_uri: string;
+  handle: string;
 };
 
 export async function createVideo(video: CreateVideoData) {
@@ -43,6 +44,7 @@ export async function createVideo(video: CreateVideoData) {
 				WHERE m.yt_id = ${video.uploader_id}
 				AND NOT EXISTS (SELECT 1 FROM Videos v WHERE v.video_id = ${video.video_id});
 		`;
+    revalidateTag(`${video.handle}-videos`);
   } catch (err) {
     console.error("Database Error:", err);
   }
@@ -269,6 +271,7 @@ export async function updateDbVideos() {
           duration: duration,
           description: valOrEmpty(snippet.description),
           thumbnail_uri: thumbnail_uri,
+          handle: member.handle,
         });
       });
 

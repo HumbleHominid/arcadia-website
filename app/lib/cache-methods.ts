@@ -6,6 +6,9 @@ import {
   fetchLatestVideos,
   fetchMembersYouTube,
   fetchLatestVideosForEachMember,
+  fetchVideosForMemberHandle,
+  fetchMemberByHandle,
+  fetchSocialsForMemberHandle,
 } from "@/app/lib/data";
 import { FilterType } from "@/app/lib/definitions";
 
@@ -71,4 +74,45 @@ export const getCachedLatestVideoIDHandles = function () {
     ["latest-video-id-handles"],
     { revalidate: 24 * 60 * 60, tags: ["latest-video-id-handles"] }, // Make the latest video ID handles cache stale after 24h
   )();
+};
+
+export const getCachedVideosForMemberHandle = function (handle: string) {
+  return unstable_cache(
+    async (handle: string) => {
+      console.log(`Fetching videos for member handle: '${handle}'`);
+      return await fetchVideosForMemberHandle(handle);
+    },
+    [`${handle}-videos`],
+    { revalidate: 24 * 60 * 60, tags: [`${handle}-videos`] },
+  )(handle);
+};
+
+export const getCachedMemberDetails = function (handle: string) {
+  return unstable_cache(
+    async (handle: string) => {
+      return await fetchMemberByHandle(handle);
+    },
+    [`${handle}-details`],
+    { revalidate: 24 * 60 * 60, tags: [`${handle}-details`] },
+  )(handle);
+};
+
+export const getCachedSocialsForMemberHandle = function (handle: string) {
+  return unstable_cache(
+    async (handle: string) => {
+      return await fetchSocialsForMemberHandle(handle);
+    },
+    [`${handle}-socials`],
+    { revalidate: 24 * 60 * 60, tags: [`${handle}-socials`] },
+  )(handle);
+};
+
+export const getCachedMemberByHandle = function (handle: string) {
+  return unstable_cache(
+    async (handle: string) => {
+      return await fetchMemberByHandle(handle);
+    },
+    [`${handle}-member`],
+    { revalidate: 24 * 60 * 60, tags: [`${handle}-member`] },
+  )(handle);
 };
