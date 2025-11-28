@@ -189,7 +189,7 @@ export async function updateDbVideos() {
       const playlistRes = await api.playlistItems.list({
         part: ["snippet"],
         playlistId: member.uploads_playlist,
-        maxResults: 10,
+        maxResults: 5,
       });
 
       if (!playlistRes.data.items || playlistRes.data.items.length === 0)
