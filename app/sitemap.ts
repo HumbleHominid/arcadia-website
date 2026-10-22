@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
-import { fetchMembers } from "@/app/lib/data";
+import { getCachedMembers } from "@/app/lib/cache-methods";
 import { FilterType } from "@/app/lib/definitions";
 import { siteUrl } from "@/app/lib/external-sites";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const lastModified = new Date();
   const filters = [FilterType.All, FilterType.Arcadia, FilterType.Latest];
-  const members = await fetchMembers();
+  const members = await getCachedMembers();
   return [
     { url: `${siteUrl}/privacy`, lastModified },
     ...filters.map((filter) => ({ url: `${siteUrl}/${filter}`, lastModified })),

@@ -8,7 +8,9 @@ import {
 } from "@/app/lib/data";
 import { FilterType } from "@/app/lib/definitions";
 
-const DAY = 24 * 60 * 60; // caches go stale after 24h
+// Every DB write in actions.ts revalidates its tags, so expiry is only a safety net.
+// Each expiry costs a Neon wake-up (5+ minutes of compute), so keep it long.
+const DAY = 7 * 24 * 60 * 60;
 
 export const getCachedMembers = unstable_cache(fetchMembers, ["members"], {
   revalidate: DAY,

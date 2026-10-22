@@ -2,6 +2,7 @@ import PageLayout from "@/app/ui/page-layout";
 import VideoList from "@/app/ui/video-list";
 import { Metadata } from "next";
 import { Suspense } from "react";
+import { notFound } from "next/navigation";
 import SocialsList from "@/app/ui/collapsable-list/socials-list";
 import CollapsableList from "@/app/ui/collapsable-list/collapsable-list";
 import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
@@ -27,11 +28,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function Page({ params }: Props) {
   // decodeURI doesn't consider that @ was encoded so we have to do this
   const handle = (await params).member.replace("%40", "@");
+  // Unknown handles 404 before any per-handle query, so crawlers can't create cache misses
+  const member = (await getCachedMembers()).find((m) => m.handle === handle);
+  if (!member) notFound();
   const socials = getCachedSocialsForMemberHandle(handle);
   const videos = getCachedVideosForMemberHandle(handle);
-  const members = getCachedMembers().then((ms) =>
-    ms.filter((m) => m.handle === handle),
-  );
+  const members = Promise.resolve([member]);
 
   return (
     <PageLayout>

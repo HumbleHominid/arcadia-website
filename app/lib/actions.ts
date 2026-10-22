@@ -1,7 +1,11 @@
-import { fetchMembers, fetchVideosForMemberHandle } from "@/app/lib/data";
-import { getCachedMembers, videoListTag } from "@/app/lib/cache-methods";
+import { fetchMembers } from "@/app/lib/data";
+import {
+  getCachedMembers,
+  getCachedVideosForMemberHandle,
+  videoListTag,
+} from "@/app/lib/cache-methods";
 import { youtube } from "@/app/lib/google";
-import { FilterType } from "@/app/lib/definitions";
+import { FilterType, Member } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
 import { createPosts } from "@/app/lib/socials/social-poster";
 import { SocialHandler } from "@/app/lib/socials/social-handler";
@@ -22,9 +26,10 @@ type CreateVideoData = {
   handle: string;
 };
 
+// Returns whether a row was inserted, so callers only announce videos that are really new
 export async function createVideo(video: CreateVideoData) {
   try {
-    await sql`
+    const { rowCount } = await sql`
 			INSERT INTO Videos(member_id, title, video_id, publish_date, is_arcadia_video, duration)
 				SELECT m.id, ${video.title}, ${video.video_id}, ${video.publish_date}, ${video.is_arcadia_video}, ${video.duration}
 				FROM Members m
@@ -32,8 +37,10 @@ export async function createVideo(video: CreateVideoData) {
 				AND NOT EXISTS (SELECT 1 FROM Videos v WHERE v.video_id = ${video.video_id});
 		`;
     revalidateTag(`${video.handle}-videos`);
+    return !!rowCount;
   } catch (err) {
     console.error("Database Error:", err);
+    return false;
   }
 }
 
@@ -94,9 +101,10 @@ export async function updateDbVideos() {
         playlistId: member.uploads_playlist,
         maxResults: "5",
       });
-      const vidIdsInDb = (await fetchVideosForMemberHandle(member.handle)).map(
-        (vid) => vid.video_id,
-      );
+      // Cached read: this runs every 10 minutes, and an uncached query would keep Neon awake
+      const vidIdsInDb = (
+        await getCachedVideosForMemberHandle(member.handle)
+      ).map((vid) => vid.video_id);
       const vidsToRequest = (playlistRes.items ?? [])
         .map((item) => item.snippet?.resourceId?.videoId)
         .filter((id): id is string => !!id && !vidIdsInDb.includes(id));
@@ -141,25 +149,27 @@ export async function updateDbVideos() {
         ];
       });
 
-      // Seconds-only duration (< 1 min) is likely a short; only post non-short Arcadia videos
-      const vidsToPost = formattedVids.filter(
-        (vid) => vid.is_arcadia_video && !/^PT\d+S$/.test(vid.duration),
+      await Promise.all(
+        formattedVids.map(async (vid) => {
+          // Post only what the insert confirms is new: the cached ID list above can lag the DB.
+          // Seconds-only duration (< 1 min) is likely a short; only post non-short Arcadia videos
+          if (
+            (await createVideo(vid)) &&
+            vid.is_arcadia_video &&
+            !/^PT\d+S$/.test(vid.duration)
+          )
+            await createPosts(
+              {
+                video_title: vid.title,
+                video_id: vid.video_id,
+                yt_handle: member.handle,
+                description: vid.description,
+                thumbnail_uri: vid.thumbnail_uri,
+              },
+              sh,
+            );
+        }),
       );
-      await Promise.all([
-        ...vidsToPost.map((vid) =>
-          createPosts(
-            {
-              video_title: vid.title,
-              video_id: vid.video_id,
-              yt_handle: member.handle,
-              description: vid.description,
-              thumbnail_uri: vid.thumbnail_uri,
-            },
-            sh,
-          ),
-        ),
-        ...formattedVids.map(createVideo),
-      ]);
 
       didUpdate = true;
     } catch (e) {
@@ -192,14 +202,27 @@ export async function updateDbMembers() {
       const contentDetails = ytMember?.contentDetails;
       if (!snippet || !contentDetails) continue;
       const handle = snippet.customUrl || null;
-      // COALESCE keeps the current value when YouTube returns nothing (matches the old truthiness checks)
+      // Keep the current value when YouTube returns nothing
+      const next = {
+        handle: handle ?? member.handle,
+        name: snippet.title || member.name,
+        yt_pfp_url: snippet.thumbnails?.default?.url || member.yt_pfp_url,
+        uploads_playlist:
+          contentDetails.relatedPlaylists?.uploads || member.uploads_playlist,
+        description: snippet.description || member.description,
+      };
+      // Skip unchanged members: no write, and no busting the members cache every day
+      if (
+        Object.entries(next).every(([k, v]) => member[k as keyof Member] === v)
+      )
+        continue;
       await sql`
 				UPDATE Members SET
-					handle = COALESCE(${handle}, handle),
-					name = COALESCE(${snippet.title || null}, name),
-					yt_pfp_url = COALESCE(${snippet.thumbnails?.default?.url || null}, yt_pfp_url),
-					uploads_playlist = COALESCE(${contentDetails.relatedPlaylists?.uploads || null}, uploads_playlist),
-					description = COALESCE(${snippet.description || null}, description)
+					handle = ${next.handle},
+					name = ${next.name},
+					yt_pfp_url = ${next.yt_pfp_url},
+					uploads_playlist = ${next.uploads_playlist},
+					description = ${next.description}
 				WHERE yt_id = ${member.yt_id}
 			`;
       // member.handle is the pre-update value: no handle before -> insert the YouTube social, else update it
@@ -220,9 +243,9 @@ export async function updateDbMembers() {
 }
 
 export async function updateDeletedVideos() {
-  const members = await fetchMembers();
+  const members = await getCachedMembers();
   const memberVids = await Promise.all(
-    members.map((m) => fetchVideosForMemberHandle(m.handle)),
+    members.map((m) => getCachedVideosForMemberHandle(m.handle)),
   );
   let didDelete = false;
   const failed: string[] = [];

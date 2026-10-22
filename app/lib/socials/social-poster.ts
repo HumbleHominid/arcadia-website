@@ -1,5 +1,5 @@
 import { SocialHandler } from "@/app/lib/socials/social-handler";
-import { fetchSocialsForMemberHandle } from "@/app/lib/data";
+import { getCachedSocialsForMemberHandle } from "@/app/lib/cache-methods";
 import AtpAgent, { RichText } from "@atproto/api";
 
 const IS_DRY_RUN = process.env.NODE_ENV !== "production";
@@ -35,7 +35,7 @@ export async function createPosts(
   data: SocialPostData,
   handler: SocialHandler,
 ) {
-  const socials = await fetchSocialsForMemberHandle(data.yt_handle);
+  const socials = await getCachedSocialsForMemberHandle(data.yt_handle);
   // Handle = last path segment of the member's profile URL
   const handleFor = (type: string) =>
     socials
