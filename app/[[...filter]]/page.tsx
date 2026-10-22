@@ -20,8 +20,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page({ params }: Props) {
-  const resolvedParams = await params;
-  const filter = (resolvedParams.filter?.[0] ??
+  const filter = ((await params).filter?.[0] ??
     FilterType.Latest) as FilterType;
   if (!Object.values(FilterType).includes(filter)) notFound();
 

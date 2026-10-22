@@ -20,9 +20,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const handle = (await params).member.replace("%40", "@");
   const member = (await getCachedMembers()).find((m) => m.handle === handle);
-  return {
-    title: member ? member.name : "Arcadian",
-  };
+  return { title: member?.name ?? "Arcadian" };
 }
 
 export default async function Page({ params }: Props) {
@@ -33,15 +31,12 @@ export default async function Page({ params }: Props) {
   if (!member) notFound();
   const socials = getCachedSocialsForMemberHandle(handle);
   const videos = getCachedVideosForMemberHandle(handle);
-  const members = Promise.resolve([member]);
 
   return (
     <PageLayout>
       {/* Social Section */}
       <div className="flex w-full flex-col gap-1 md:w-4/12">
-        <Suspense fallback={null}>
-          <MemberDesc members={members} />
-        </Suspense>
+        <MemberDesc member={member} />
         <Suspense fallback={<CollapsableList title="Socials" />}>
           <SocialsList socials={socials} />
         </Suspense>

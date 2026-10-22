@@ -1,4 +1,4 @@
-import { fetchMembers, sql } from "@/app/lib/data";
+import { fetchMembers, fetchVideoIdsByMember, sql } from "@/app/lib/data";
 import {
   getCachedMembers,
   getCachedVideosForMemberHandle,
@@ -32,7 +32,7 @@ async function createVideos(yt_id: string, vids: Array<CreateVideoData>) {
 			FROM Members m, unnest(
 				${vids.map((v) => v.title)}::text[],
 				${vids.map((v) => v.video_id)}::text[],
-				${vids.map((v) => v.publish_date)}::text[],
+				${vids.map((v) => v.publish_date)}::timestamptz[],
 				${vids.map((v) => v.is_arcadia_video)}::boolean[],
 				${vids.map((v) => v.duration)}::text[]
 			) AS v(title, video_id, publish_date, is_arcadia_video, duration)
@@ -100,14 +100,15 @@ export async function updateDbVideos() {
       );
 
       const formattedVids: Array<CreateVideoData> = vids.flatMap((vid) => {
-        if (!vid.snippet) return [];
         const { snippet } = vid;
+        // publish_date is a timestamptz, so a video without one can't be stored
+        if (!snippet?.publishedAt) return [];
         const id = vid.id ?? "";
         return [
           {
             title: snippet.title ?? "",
             video_id: id,
-            publish_date: snippet.publishedAt ?? "",
+            publish_date: snippet.publishedAt,
             is_arcadia_video: !!snippet.tags?.some((tag) =>
               tag.toLowerCase().includes("arcadia"),
             ),
@@ -215,35 +216,33 @@ export async function updateDbMembers() {
 }
 
 export async function updateDeletedVideos() {
-  const members = await getCachedMembers();
-  const memberVids = await Promise.all(
-    members.map((m) => getCachedVideosForMemberHandle(m.handle)),
-  );
+  // One uncached read of every stored ID (the cached per-member lists stop at 50).
+  // Daily, so it shares the wake-up with update-members. Members with no videos aren't listed.
+  const members = await fetchVideoIdsByMember();
   let didDelete = false;
   const failed: string[] = [];
 
-  for (const [i, member] of members.entries()) {
-    const vidIds = memberVids[i].map((vid) => vid.video_id);
-    if (vidIds.length === 0) continue; // videos.list with no ids 400s and would abort the cron
+  for (const { handle, video_ids } of members) {
     try {
-      const vidRes = await youtube("videos", {
-        part: "snippet",
-        id: vidIds.join(","),
-      });
-      if (!vidRes.items?.length) continue; // never wipe a member on an empty response
-      const validVids = vidRes.items.map((item) => item.id);
+      const valid = new Set<string>();
+      // videos.list takes at most 50 IDs per request
+      for (let i = 0; i < video_ids.length; i += 50) {
+        const res = await youtube("videos", {
+          part: "id",
+          id: video_ids.slice(i, i + 50).join(","),
+        });
+        res.items?.forEach((item) => item.id && valid.add(item.id));
+      }
+      if (valid.size === 0) continue; // never wipe a member on an empty response
       // In the DB but not returned by YouTube: deleted or set to private
-      const gone = vidIds.filter((id) => !validVids.includes(id));
+      const gone = video_ids.filter((id) => !valid.has(id));
       if (gone.length === 0) continue;
       await sql`DELETE FROM Videos WHERE video_id = ANY(${gone}::text[])`;
       didDelete = true;
-      revalidateTag(`${member.handle}-videos`);
+      revalidateTag(`${handle}-videos`);
     } catch (e) {
-      console.error(
-        `YouTube playlist or video request for '${member.handle}' failed.`,
-        e,
-      );
-      failed.push(member.handle);
+      console.error(`YouTube video request for '${handle}' failed.`, e);
+      failed.push(handle);
     }
   }
 

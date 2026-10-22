@@ -24,10 +24,7 @@ export default function VideoFilter() {
             href={href}
             className={clsx(
               "flex h-full w-full items-center justify-center border border-gray-200 text-sm decoration-1 underline-offset-1 first:rounded-l-md last:rounded-r-md hover:underline md:text-base",
-              {
-                "bg-slate-300": isSelected,
-                "bg-slate-100 hover:bg-slate-200": !isSelected,
-              },
+              isSelected ? "bg-slate-300" : "bg-slate-100 hover:bg-slate-200",
             )}
           >
             {LABELS[filter]}
