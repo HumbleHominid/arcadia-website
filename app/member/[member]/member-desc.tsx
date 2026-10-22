@@ -36,12 +36,25 @@ export default function MemberDesc({
     if (canExpand) setIsExpanded(!isExpanded);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    handleClick();
+  };
+
   return (
     <div
-      className={clsx("relative", {
-        "hover:cursor-pointer": canExpand,
+      className={clsx("relative rounded-sm", {
+        "hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2":
+          canExpand,
       })}
       onClick={handleClick}
+      {...(canExpand && {
+        role: "button",
+        tabIndex: 0,
+        "aria-expanded": isExpanded,
+        onKeyDown: handleKeyDown,
+      })}
     >
       <div
         className={clsx(
@@ -60,10 +73,10 @@ export default function MemberDesc({
         ref={pRef}
         className={clsx(
           "overflow-hidden rounded-sm bg-white p-1 text-sm break-words drop-shadow-sm md:p-2 md:drop-shadow-md",
-          "transition-[max-height] duration-300 ease-in-out",
+          "transition-[max-height] duration-300 ease-in-out [interpolate-size:allow-keywords]",
           {
             "max-h-20 md:max-h-56": !isExpanded,
-            "max-h-[750px]": isExpanded,
+            "max-h-max": isExpanded,
           },
         )}
       >

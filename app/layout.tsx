@@ -90,6 +90,7 @@ export default function RootLayout({
           width={2560}
           height={1440}
           alt="Arcadia Background Image"
+          priority
           className="sticky top-0 -z-10 col-span-full row-span-full h-screen min-w-full object-cover"
         />
         <main className="col-span-full row-span-full mx-0 my-auto grid min-h-screen max-w-5xl grid-rows-[auto_auto_1fr_auto] items-center">
@@ -98,9 +99,10 @@ export default function RootLayout({
             <Link href="/" className="">
               <Image
                 src="/images/banner.png"
-                width={1500}
-                height={500}
+                width={3839}
+                height={933}
                 alt="Arcadia Banner Image"
+                priority
                 className="p-2 md:p-4"
               />
             </Link>

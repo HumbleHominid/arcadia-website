@@ -14,7 +14,7 @@ const LABELS: Record<FilterType, string> = {
 export default function VideoFilter() {
   const pathname = usePathname();
   return (
-    <div className="my-2 flex h-7 w-full justify-evenly divide-x divide-gray-200 px-2 drop-shadow-md hover:cursor-pointer sm:h-8 md:h-10 md:w-8/12">
+    <div className="my-2 flex h-8 w-full justify-evenly divide-x divide-gray-200 px-2 drop-shadow-md hover:cursor-pointer md:h-10 md:w-8/12">
       {Object.values(FilterType).map((filter) => {
         const href = `/${filter}`;
         const isSelected = pathname === href;

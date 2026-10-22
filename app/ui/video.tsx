@@ -66,7 +66,7 @@ export default function Video({ data }: { data: VideoData }) {
           <span className="text-gray-600">by: </span>
           <Link
             href={`/member/${data.uploader_handle}`}
-            className="decoration-1 underline-offset-1 hover:underline"
+            className="-my-1 inline-block py-1 decoration-1 underline-offset-1 hover:underline"
           >
             {data.uploader_name}
           </Link>
