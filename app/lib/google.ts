@@ -7,7 +7,6 @@ type YouTubeItem = {
   snippet?: {
     title?: string;
     publishedAt?: string;
-    channelId?: string;
     tags?: string[];
     description?: string;
     customUrl?: string;

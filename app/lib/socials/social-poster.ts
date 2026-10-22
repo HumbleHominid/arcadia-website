@@ -2,7 +2,11 @@ import { SocialHandler } from "@/app/lib/socials/social-handler";
 import { getCachedSocialsForMemberHandle } from "@/app/lib/cache-methods";
 import AtpAgent, { RichText } from "@atproto/api";
 
-const IS_DRY_RUN = process.env.NODE_ENV !== "production";
+// Off locally, and anywhere DISABLE_SOCIAL_POSTING=true (set it for preview/QA deployments,
+// which run with NODE_ENV=production). When off, nothing logs in, uploads or posts.
+const POSTING_ENABLED =
+  process.env.NODE_ENV === "production" &&
+  process.env.DISABLE_SOCIAL_POSTING !== "true";
 
 type SocialPostData = {
   video_title: string;
@@ -44,6 +48,12 @@ export async function createPosts(
       .split("/")
       .pop();
 
+  if (!POSTING_ENABLED) {
+    console.log(
+      `Social posting off, would post: ${postText(data, handleFor("BlueSky"))} | ${postText(data, handleFor("Twitter/X"))}`,
+    );
+    return;
+  }
   // Fire and forget intended
   postSkeet(handler, data, handleFor("BlueSky"));
   postTweet(handler, data, handleFor("Twitter/X"));
@@ -61,7 +71,6 @@ async function postTweet(
   if (!client) return;
   const text = `${postText(data, handle)} https://www.youtube.com/watch?v=${data.video_id}`;
   console.log(`posting tweet: ${text}`);
-  if (IS_DRY_RUN) return;
   client.v2
     .tweet({ text })
     .catch((e) =>
@@ -83,8 +92,7 @@ async function postSkeet(
     await rt.detectFacets(client);
     const embed = await getBSKYEmbedCard(client, data);
     console.log(`posting skeet: ${rt.text}`);
-    if (!IS_DRY_RUN)
-      await client.post({ text: rt.text, facets: rt.facets, embed });
+    await client.post({ text: rt.text, facets: rt.facets, embed });
   } catch (e) {
     console.log(`Failed to post skeet with err: ${e}`);
   }

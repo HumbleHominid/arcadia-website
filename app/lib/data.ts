@@ -1,9 +1,12 @@
-import { sql } from "@vercel/postgres";
+import { neon } from "@neondatabase/serverless";
 import { Video, Social, Member } from "@/app/lib/definitions";
+
+// Neon's HTTP driver: each query is one request, with no connection to set up first
+export const sql = neon(process.env.DATABASE_URL!);
 
 export async function fetchMembers(): Promise<Array<Member>> {
   try {
-    const data = await sql<Member>`
+    return (await sql`
 			SELECT
 				name,
 				handle,
@@ -13,9 +16,7 @@ export async function fetchMembers(): Promise<Array<Member>> {
 				description
 			FROM Members
 			ORDER BY lower(name) ASC
-		`;
-
-    return data.rows;
+		`) as Member[];
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error("Failed to fetch all members.");
@@ -24,7 +25,7 @@ export async function fetchMembers(): Promise<Array<Member>> {
 
 export async function fetchVideos(arcadiaOnly: boolean): Promise<Array<Video>> {
   try {
-    const data = await sql<Video>`
+    return (await sql`
 			SELECT
 				m.name AS uploader_name,
 				m.handle AS uploader_handle,
@@ -39,9 +40,7 @@ export async function fetchVideos(arcadiaOnly: boolean): Promise<Array<Video>> {
 			WHERE (${!arcadiaOnly}::boolean OR v.is_arcadia_video)
 			ORDER BY v.publish_date DESC
 			LIMIT 50
-		`;
-
-    return data.rows;
+		`) as Video[];
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error("Failed to fetch videos.");
@@ -50,8 +49,10 @@ export async function fetchVideos(arcadiaOnly: boolean): Promise<Array<Video>> {
 
 export async function fetchLatestVideos(): Promise<Array<Video>> {
   try {
-    const data = await sql<Video>`
-			SELECT
+    // DISTINCT ON reads videos once and guarantees one row per member, even on publish_date ties
+    return (await sql`
+			SELECT * FROM (
+				SELECT DISTINCT ON (v.member_id)
 					m.name AS uploader_name,
 					m.handle AS uploader_handle,
 					m.yt_id AS uploader_id,
@@ -60,17 +61,12 @@ export async function fetchLatestVideos(): Promise<Array<Video>> {
 					v.publish_date,
 					v.is_arcadia_video,
 					v.duration
-			FROM videos v
-			JOIN
-					(SELECT member_id, MAX(publish_date) as max_date
-					FROM videos
-					GROUP BY member_id) latest
-				ON v.member_id = latest.member_id AND v.publish_date = latest.max_date
-			INNER JOIN Members m ON v.member_id = m.id
-			ORDER BY v.publish_date DESC
-		`;
-
-    return data.rows;
+				FROM Videos v
+				INNER JOIN Members m ON v.member_id = m.id
+				ORDER BY v.member_id, v.publish_date DESC
+			) latest
+			ORDER BY publish_date DESC
+		`) as Video[];
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error("Failed to fetch all videos.");
@@ -82,7 +78,7 @@ export async function fetchVideosForMemberHandle(
 ): Promise<Array<Video>> {
   console.log("Fetching videos for handle:", handle);
   try {
-    const data = await sql<Video>`
+    return (await sql`
 			SELECT
 				m.name AS uploader_name,
 				m.handle AS uploader_handle,
@@ -97,9 +93,7 @@ export async function fetchVideosForMemberHandle(
 			WHERE m.handle = ${handle}
 			ORDER BY publish_date DESC
 			LIMIT 50
-		`;
-
-    return data.rows;
+		`) as Video[];
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error(`Failed to fetch videos for handle '${handle}'.`);
@@ -110,7 +104,7 @@ export async function fetchSocialsForMemberHandle(
   handle: string,
 ): Promise<Array<Social>> {
   try {
-    const data = await sql<Social>`
+    return (await sql`
 			SELECT
 				st.name AS type,
 				s.url
@@ -118,9 +112,7 @@ export async function fetchSocialsForMemberHandle(
 			INNER JOIN SocialTypes st ON s.social_type_id = st.id
 			WHERE s.member_id = (SELECT id FROM Members WHERE handle = ${handle})
 			ORDER BY st.name ASC
-		`;
-
-    return data.rows;
+		`) as Social[];
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error(`Failed to fetch socials for handle '${handle}'.`);

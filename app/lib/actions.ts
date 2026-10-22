@@ -1,4 +1,4 @@
-import { fetchMembers } from "@/app/lib/data";
+import { fetchMembers, sql } from "@/app/lib/data";
 import {
   getCachedMembers,
   getCachedVideosForMemberHandle,
@@ -6,7 +6,6 @@ import {
 } from "@/app/lib/cache-methods";
 import { youtube } from "@/app/lib/google";
 import { FilterType, Member } from "@/app/lib/definitions";
-import { sql } from "@vercel/postgres";
 import { createPosts } from "@/app/lib/socials/social-poster";
 import { SocialHandler } from "@/app/lib/socials/social-handler";
 import { revalidateTag } from "next/cache";
@@ -19,69 +18,43 @@ type CreateVideoData = {
   video_id: string;
   publish_date: string;
   duration: string;
-  uploader_id: string;
   is_arcadia_video: boolean;
   description: string;
   thumbnail_uri: string;
-  handle: string;
 };
 
-// Returns whether a row was inserted, so callers only announce videos that are really new
-export async function createVideo(video: CreateVideoData) {
-  try {
-    const { rowCount } = await sql`
-			INSERT INTO Videos(member_id, title, video_id, publish_date, is_arcadia_video, duration)
-				SELECT m.id, ${video.title}, ${video.video_id}, ${video.publish_date}, ${video.is_arcadia_video}, ${video.duration}
-				FROM Members m
-				WHERE m.yt_id = ${video.uploader_id}
-				AND NOT EXISTS (SELECT 1 FROM Videos v WHERE v.video_id = ${video.video_id});
-		`;
-    revalidateTag(`${video.handle}-videos`);
-    return !!rowCount;
-  } catch (err) {
-    console.error("Database Error:", err);
-    return false;
-  }
+// One round trip for all of a member's new videos. ON CONFLICT skips any already stored,
+// and RETURNING says which were really inserted, so only those get announced.
+async function createVideos(yt_id: string, vids: Array<CreateVideoData>) {
+  const rows = await sql`
+		INSERT INTO Videos (member_id, title, video_id, publish_date, is_arcadia_video, duration)
+			SELECT m.id, v.title, v.video_id, v.publish_date, v.is_arcadia_video, v.duration
+			FROM Members m, unnest(
+				${vids.map((v) => v.title)}::text[],
+				${vids.map((v) => v.video_id)}::text[],
+				${vids.map((v) => v.publish_date)}::text[],
+				${vids.map((v) => v.is_arcadia_video)}::boolean[],
+				${vids.map((v) => v.duration)}::text[]
+			) AS v(title, video_id, publish_date, is_arcadia_video, duration)
+			WHERE m.yt_id = ${yt_id}
+		ON CONFLICT (video_id) DO NOTHING
+		RETURNING video_id
+	`;
+  return new Set(rows.map((row) => row.video_id as string));
 }
 
-async function insertMemberYouTubeSocial(handle: string) {
+// Insert or replace the member's YouTube link (one row per member and social type)
+async function upsertMemberYouTubeSocial(yt_id: string, handle: string) {
   try {
-    const url = `https://www.youtube.com/${handle}`;
     await sql`
 			INSERT INTO Socials (member_id, social_type_id, url)
-				SELECT m.id, st.id, ${url}
+				SELECT m.id, st.id, ${`https://www.youtube.com/${handle}`}
 				FROM Members m, SocialTypes st
-				WHERE m.handle = ${handle}
-				AND st.name = 'YouTube'
-				AND NOT EXISTS (SELECT 1 FROM Socials s WHERE s.url = ${url})
+				WHERE m.yt_id = ${yt_id} AND st.name = 'YouTube'
+			ON CONFLICT (member_id, social_type_id) DO UPDATE SET url = EXCLUDED.url
 		`;
   } catch (e) {
-    console.error(`Failed to insert YouTube Social for member '${handle}'`, e);
-  }
-}
-
-async function updateMemberYouTubeSocial(yt_id: string, handle: string) {
-  try {
-    const url = `https://www.youtube.com/${handle}`;
-    await sql`
-			UPDATE Socials
-				SET url = ${url}
-				WHERE member_id = (SELECT id FROM Members WHERE yt_id = ${yt_id})
-					AND social_type_id = (SELECT id FROM SocialTypes WHERE name = 'YouTube')
-		`;
-  } catch (e) {
-    console.error(`Failed to update YouTube Social for member '${handle}'`, e);
-  }
-}
-
-async function deleteVideoByVidId(vid_id: string) {
-  try {
-    await sql`
-			DELETE FROM Videos
-				WHERE video_id = ${vid_id}
-		`;
-  } catch (e) {
-    console.error(`Failed to delete video with id '${vid_id}'`, e);
+    console.error(`Failed to save YouTube Social for member '${handle}'`, e);
   }
 }
 
@@ -135,7 +108,6 @@ export async function updateDbVideos() {
             title: snippet.title ?? "",
             video_id: id,
             publish_date: snippet.publishedAt ?? "",
-            uploader_id: snippet.channelId ?? "",
             is_arcadia_video: !!snippet.tags?.some((tag) =>
               tag.toLowerCase().includes("arcadia"),
             ),
@@ -144,21 +116,24 @@ export async function updateDbVideos() {
             thumbnail_uri:
               snippet.thumbnails?.standard?.url ||
               `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-            handle: member.handle,
           },
         ];
       });
 
+      const inserted = await createVideos(member.yt_id, formattedVids);
+      revalidateTag(`${member.handle}-videos`);
+      // Post only what the insert confirms is new: the cached ID list above can lag the DB.
+      // Seconds-only duration (< 1 min) is likely a short; only post non-short Arcadia videos
       await Promise.all(
-        formattedVids.map(async (vid) => {
-          // Post only what the insert confirms is new: the cached ID list above can lag the DB.
-          // Seconds-only duration (< 1 min) is likely a short; only post non-short Arcadia videos
-          if (
-            (await createVideo(vid)) &&
-            vid.is_arcadia_video &&
-            !/^PT\d+S$/.test(vid.duration)
+        formattedVids
+          .filter(
+            (vid) =>
+              inserted.has(vid.video_id) &&
+              vid.is_arcadia_video &&
+              !/^PT\d+S$/.test(vid.duration),
           )
-            await createPosts(
+          .map((vid) =>
+            createPosts(
               {
                 video_title: vid.title,
                 video_id: vid.video_id,
@@ -167,8 +142,8 @@ export async function updateDbVideos() {
                 thumbnail_uri: vid.thumbnail_uri,
               },
               sh,
-            );
-        }),
+            ),
+          ),
       );
 
       didUpdate = true;
@@ -225,11 +200,8 @@ export async function updateDbMembers() {
 					description = ${next.description}
 				WHERE yt_id = ${member.yt_id}
 			`;
-      // member.handle is the pre-update value: no handle before -> insert the YouTube social, else update it
       if (handle && handle !== member.handle) {
-        if (member.handle)
-          await updateMemberYouTubeSocial(member.yt_id, handle);
-        else await insertMemberYouTubeSocial(handle);
+        await upsertMemberYouTubeSocial(member.yt_id, handle);
         revalidateTag(`${handle}-socials`);
       }
       revalidateTag("members");
@@ -261,12 +233,11 @@ export async function updateDeletedVideos() {
       if (!vidRes.items?.length) continue; // never wipe a member on an empty response
       const validVids = vidRes.items.map((item) => item.id);
       // In the DB but not returned by YouTube: deleted or set to private
-      for (const vidId of vidIds) {
-        if (validVids.includes(vidId)) continue;
-        await deleteVideoByVidId(vidId);
-        didDelete = true;
-        revalidateTag(`${member.handle}-videos`);
-      }
+      const gone = vidIds.filter((id) => !validVids.includes(id));
+      if (gone.length === 0) continue;
+      await sql`DELETE FROM Videos WHERE video_id = ANY(${gone}::text[])`;
+      didDelete = true;
+      revalidateTag(`${member.handle}-videos`);
     } catch (e) {
       console.error(
         `YouTube playlist or video request for '${member.handle}' failed.`,
