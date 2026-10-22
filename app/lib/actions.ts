@@ -1,13 +1,14 @@
 import { fetchMembers, fetchVideoIdsByMember, sql } from "@/app/lib/data";
 import {
   getCachedMembers,
+  getCachedSocialsForMemberHandle,
   getCachedVideosForMemberHandle,
   videoListTag,
 } from "@/app/lib/cache-methods";
 import { youtube } from "@/app/lib/google";
 import { FilterType, Member } from "@/app/lib/definitions";
-import { createPosts } from "@/app/lib/socials/social-poster";
-import { SocialHandler } from "@/app/lib/socials/social-handler";
+import { socialPoster } from "@/app/lib/socials/social-poster";
+import { PLATFORMS } from "@/app/lib/socials/platforms";
 import { revalidateTag } from "next/cache";
 
 // Tags used by getCachedVideos for each home page filter
@@ -61,7 +62,7 @@ async function upsertMemberYouTubeSocial(yt_id: string, handle: string) {
 export async function updateDbVideos() {
   console.log("Updating DB Videos...");
   const members = await getCachedMembers();
-  const sh = new SocialHandler();
+  const postVideo = socialPoster(PLATFORMS); // one login per platform for this run
   let didUpdate = false;
   const failed: string[] = [];
 
@@ -123,31 +124,37 @@ export async function updateDbVideos() {
 
       const inserted = await createVideos(member.yt_id, formattedVids);
       revalidateTag(`${member.handle}-videos`);
+      didUpdate = true;
       // Post only what the insert confirms is new: the cached ID list above can lag the DB.
       // Seconds-only duration (< 1 min) is likely a short; only post non-short Arcadia videos
-      await Promise.all(
-        formattedVids
-          .filter(
-            (vid) =>
-              inserted.has(vid.video_id) &&
-              vid.is_arcadia_video &&
-              !/^PT\d+S$/.test(vid.duration),
-          )
-          .map((vid) =>
-            createPosts(
+      const toPost = formattedVids.filter(
+        (vid) =>
+          inserted.has(vid.video_id) &&
+          vid.is_arcadia_video &&
+          !/^PT\d+S$/.test(vid.duration),
+      );
+      if (toPost.length) {
+        // The videos are already stored, so a failed socials read must not skip posting: post without @handles
+        const socials = await getCachedSocialsForMemberHandle(
+          member.handle,
+        ).catch((e) => {
+          console.error(`Socials read for '${member.handle}' failed:`, e);
+          return [];
+        });
+        await Promise.all(
+          toPost.map((vid) =>
+            postVideo(
               {
                 video_title: vid.title,
                 video_id: vid.video_id,
-                yt_handle: member.handle,
                 description: vid.description,
                 thumbnail_uri: vid.thumbnail_uri,
               },
-              sh,
+              socials,
             ),
           ),
-      );
-
-      didUpdate = true;
+        );
+      }
     } catch (e) {
       console.error(
         `YouTube playlist or video request for '${member.yt_id}' failed.`,

@@ -1,6 +1,5 @@
-import { SocialHandler } from "@/app/lib/socials/social-handler";
-import { getCachedSocialsForMemberHandle } from "@/app/lib/cache-methods";
-import AtpAgent, { RichText } from "@atproto/api";
+// No runtime imports and only erasable TS, so plain `node` (type stripping) can import this file.
+import type { Social } from "@/app/lib/definitions";
 
 // Off locally, and anywhere DISABLE_SOCIAL_POSTING=true (set it for preview/QA deployments,
 // which run with NODE_ENV=production). When off, nothing logs in, uploads or posts.
@@ -8,92 +7,100 @@ const POSTING_ENABLED =
   process.env.NODE_ENV === "production" &&
   process.env.DISABLE_SOCIAL_POSTING !== "true";
 
-type SocialPostData = {
+export type SocialPostData = {
   video_title: string;
   video_id: string;
-  yt_handle: string;
   description: string;
   thumbnail_uri: string;
 };
 
-async function getBSKYEmbedCard(client: AtpAgent, video_data: SocialPostData) {
+export type Post = (text: string, data: SocialPostData) => Promise<void>;
+
+export type Platform = {
+  // Must equal SocialTypes.name; used to find the member's handle
+  name: string;
+  enabled: boolean;
+  // Throws on failure; called at most once per socialPoster()
+  login: () => Promise<Post>;
+};
+
+// Handle = last path segment of the member's profile URL
+export const handleFor = (socials: Social[], type: string) =>
+  socials
+    .find((s) => s.type === type)
+    ?.url.replace(/\/$/, "")
+    .split("/")
+    .pop();
+
+// Only status/error/body: the request and headers carry the OAuth Authorization header
+export function errorDetail(e: unknown): string {
+  if (!(e instanceof Error)) return String(e);
+  const { status, code, error, data } = e as Error & {
+    status?: unknown;
+    code?: unknown;
+    error?: unknown;
+    data?: unknown;
+  };
+  const detail = {
+    // twitter-api-v2 puts the HTTP status in `code`; Node network errors put a string there
+    status: status ?? (typeof code === "number" ? code : undefined),
+    code: typeof code === "string" ? code : undefined,
+    error: typeof error === "string" ? error : undefined,
+    data,
+    // fetch's "fetch failed" hides the real reason here
+    cause: e.cause instanceof Error ? e.cause.message : undefined,
+  };
+  if (!Object.values(detail).some((v) => v !== undefined)) return e.message;
   try {
-    const blob = await fetch(video_data.thumbnail_uri).then((r) => r.blob());
-    const { data } = await client.uploadBlob(blob, { encoding: "image/jpeg" });
-
-    return {
-      $type: "app.bsky.embed.external",
-      external: {
-        uri: `https://youtu.be/${video_data.video_id}`,
-        title: video_data.video_title,
-        description: video_data.description,
-        thumb: data.blob,
-      },
-    };
-  } catch (e) {
-    console.log(`Failed to produce BSKY Embed Card with err: ${e}`);
+    return `${e.message} ${JSON.stringify(detail)}`;
+  } catch {
+    // Circular or BigInt body: logging must never throw
+    return e.message;
   }
 }
 
-export async function createPosts(
-  data: SocialPostData,
-  handler: SocialHandler,
+export function socialPoster(
+  platforms: Platform[],
+  postingEnabled = POSTING_ENABLED,
 ) {
-  const socials = await getCachedSocialsForMemberHandle(data.yt_handle);
-  // Handle = last path segment of the member's profile URL
-  const handleFor = (type: string) =>
-    socials
-      .find((s) => s.type === type)
-      ?.url.replace(/\/$/, "")
-      .split("/")
-      .pop();
+  // One login per platform per cron run, shared across videos. A failed login stays
+  // memoized, so later videos fail fast and the next run retries.
+  const logins = new Map<Platform, Promise<Post>>();
 
-  if (!POSTING_ENABLED) {
-    console.log(
-      `Social posting off, would post: ${postText(data, handleFor("BlueSky"))} | ${postText(data, handleFor("Twitter/X"))}`,
-    );
-    return;
-  }
-  // Fire and forget intended
-  postSkeet(handler, data, handleFor("BlueSky"));
-  postTweet(handler, data, handleFor("Twitter/X"));
-}
+  // Never rejects: failures are logged per platform
+  return async (data: SocialPostData, socials: Social[]) => {
+    const jobs = platforms
+      .filter((p) => p.enabled)
+      .map((p) => {
+        const handle = handleFor(socials, p.name);
+        return {
+          p,
+          text: handle ? `${data.video_title} @${handle}` : data.video_title,
+        };
+      });
+    if (!jobs.length) return;
 
-const postText = (data: SocialPostData, handle?: string) =>
-  handle ? `${data.video_title} @${handle}` : data.video_title;
-
-async function postTweet(
-  handler: SocialHandler,
-  data: SocialPostData,
-  handle?: string,
-) {
-  const client = await handler.get_twitter();
-  if (!client) return;
-  const text = `${postText(data, handle)} https://www.youtube.com/watch?v=${data.video_id}`;
-  console.log(`posting tweet: ${text}`);
-  client.v2
-    .tweet({ text })
-    .catch((e) =>
+    if (!postingEnabled) {
       console.log(
-        `Failed to post tweet with err code ${e.code} and details: ${e.error?.detail}`,
-      ),
-    );
-}
+        `Social posting off, would post: ${jobs.map(({ p, text }) => `[${p.name}] ${text}`).join(" | ")}`,
+      );
+      return;
+    }
 
-async function postSkeet(
-  handler: SocialHandler,
-  data: SocialPostData,
-  handle?: string,
-) {
-  const client = await handler.get_bsky();
-  if (!client) return;
-  try {
-    const rt = new RichText({ text: postText(data, handle) });
-    await rt.detectFacets(client);
-    const embed = await getBSKYEmbedCard(client, data);
-    console.log(`posting skeet: ${rt.text}`);
-    await client.post({ text: rt.text, facets: rt.facets, embed });
-  } catch (e) {
-    console.log(`Failed to post skeet with err: ${e}`);
-  }
+    const results = await Promise.allSettled(
+      jobs.map(async ({ p, text }) => {
+        let login = logins.get(p);
+        if (!login) logins.set(p, (login = p.login()));
+        const post = await login;
+        await post(text, data);
+        console.log(`Posted to ${p.name}: ${text}`);
+      }),
+    );
+    results.forEach((r, i) => {
+      if (r.status === "rejected")
+        console.error(
+          `${jobs[i].p.name} post failed for ${data.video_id}: ${errorDetail(r.reason)}`,
+        );
+    });
+  };
 }
