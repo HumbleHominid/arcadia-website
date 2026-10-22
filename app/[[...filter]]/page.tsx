@@ -8,7 +8,6 @@ import { FilterType } from "@/app/lib/definitions";
 import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
 import { notFound } from "next/navigation";
-import Announcement from "@/app/ui/announcement";
 import { externalSites as ES } from "@/app/lib/external-sites";
 import { getCachedMembers, getCachedVideos } from "@/app/lib/cache-methods";
 
@@ -66,27 +65,24 @@ export default async function Page({ params }: Props) {
     },
   ];
   return (
-    <div className="flex flex-col gap-4">
-      <Announcement />
-      <PageLayout>
-        {/* Member and Server Info */}
-        <div className="flex w-full flex-col gap-1 md:w-4/12">
-          <Suspense fallback={<CollapsableList title="Members" />}>
-            <MembersList members={members} />
-          </Suspense>
-          <CollapsableList data={community} title="Community" />
-          <CollapsableList data={server} title="Server Stuff" />
-        </div>
-        {/* Video section */}
-        <div className="flex h-min w-full flex-col items-center rounded-sm bg-white text-lg drop-shadow-sm md:drop-shadow-xl">
-          {/* Need a context switcher */}
-          <VideoFilter />
-          {/* List of videos */}
-          <Suspense fallback={<VideoListSkeleton />}>
-            <VideoList videos={videos} />
-          </Suspense>
-        </div>
-      </PageLayout>
-    </div>
+    <PageLayout>
+      {/* Member and Server Info */}
+      <div className="flex w-full flex-col gap-1 md:w-4/12">
+        <Suspense fallback={<CollapsableList title="Members" />}>
+          <MembersList members={members} />
+        </Suspense>
+        <CollapsableList data={community} title="Community" />
+        <CollapsableList data={server} title="Server Stuff" />
+      </div>
+      {/* Video section */}
+      <div className="flex h-min w-full flex-col items-center rounded-sm bg-white text-lg drop-shadow-sm md:drop-shadow-xl">
+        {/* Need a context switcher */}
+        <VideoFilter />
+        {/* List of videos */}
+        <Suspense fallback={<VideoListSkeleton />}>
+          <VideoList videos={videos} />
+        </Suspense>
+      </div>
+    </PageLayout>
   );
 }

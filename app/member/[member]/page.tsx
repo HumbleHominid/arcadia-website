@@ -1,7 +1,3 @@
-import {
-  fetchMemberByHandle,
-  fetchSocialsForMemberHandle,
-} from "@/app/lib/data";
 import PageLayout from "@/app/ui/page-layout";
 import VideoList from "@/app/ui/video-list";
 import { Metadata } from "next";
@@ -12,7 +8,6 @@ import VideoListSkeleton from "@/app/ui/skeletons/video-list-skeleton";
 import MemberDesc from "@/app/member/[member]/member-desc";
 import {
   getCachedVideosForMemberHandle,
-  getCachedMemberDetails,
   getCachedSocialsForMemberHandle,
   getCachedMemberByHandle,
 } from "@/app/lib/cache-methods";
@@ -34,7 +29,7 @@ export default async function Page({ params }: Props) {
   const handle = (await params).member.replace("%40", "@");
   const socials = getCachedSocialsForMemberHandle(handle);
   const videos = getCachedVideosForMemberHandle(handle);
-  const members = getCachedMemberDetails(handle);
+  const members = getCachedMemberByHandle(handle);
 
   return (
     <PageLayout>

@@ -1,14 +1,5 @@
-"use server";
-
 import { sql } from "@vercel/postgres";
-import {
-  Video,
-  Social,
-  Member,
-  MemberYouTube,
-  MemberHandle,
-  VideoIDHandle,
-} from "@/app/lib/definitions";
+import { Video, Social, Member } from "@/app/lib/definitions";
 
 export async function fetchMembers(): Promise<Array<Member>> {
   try {
@@ -31,40 +22,7 @@ export async function fetchMembers(): Promise<Array<Member>> {
   }
 }
 
-export async function fetchMembersYouTube(): Promise<Array<MemberYouTube>> {
-  try {
-    const data = await sql<MemberYouTube>`
-			SELECT
-				yt_id,
-				uploads_playlist,
-				handle
-			FROM Members
-		`;
-
-    return data.rows;
-  } catch (err) {
-    console.error("Database Error:", err);
-    throw new Error("Failed to fetch member's YouTube.");
-  }
-}
-
-export async function fetchMemberHandles(): Promise<Array<MemberHandle>> {
-  try {
-    const data = await sql<Member>`
-			SELECT
-				handle
-			FROM Members
-			ORDER BY lower(handle) ASC
-		`;
-
-    return data.rows;
-  } catch (err) {
-    console.error("Database Error:", err);
-    throw new Error("Failed to fetch all member's handles.");
-  }
-}
-
-export async function fetchAllVideos(): Promise<Array<Video>> {
+export async function fetchVideos(arcadiaOnly: boolean): Promise<Array<Video>> {
   try {
     const data = await sql<Video>`
 			SELECT
@@ -78,6 +36,7 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
 				v.duration
 			FROM Videos v
 			INNER JOIN Members m ON v.member_id = m.id
+			WHERE (${!arcadiaOnly}::boolean OR v.is_arcadia_video)
 			ORDER BY v.publish_date DESC
 			LIMIT 50
 		`;
@@ -85,33 +44,7 @@ export async function fetchAllVideos(): Promise<Array<Video>> {
     return data.rows;
   } catch (err) {
     console.error("Database Error:", err);
-    throw new Error("Failed to fetch all videos.");
-  }
-}
-
-export async function fetchLatestVideosForEachMember(): Promise<
-  Array<VideoIDHandle>
-> {
-  try {
-    const data = await sql<VideoIDHandle>`
-			SELECT
-			v.video_id,
-			m.handle AS uploader_handle,
-			m.yt_id AS uploader_id
-			FROM (
-				SELECT video_id, member_id,
-					ROW_NUMBER() OVER (PARTITION BY member_id ORDER BY publish_date DESC) AS rn
-				FROM videos
-			) v
-			JOIN members m ON v.member_id = m.id
-			WHERE v.rn <= 15
-			ORDER BY m.handle, v.rn
-		`;
-
-    return data.rows;
-  } catch (err) {
-    console.error("Database Error:", err);
-    throw new Error("Failed to fetch latest 15 videos for each member.");
+    throw new Error("Failed to fetch videos.");
   }
 }
 
@@ -135,32 +68,6 @@ export async function fetchLatestVideos(): Promise<Array<Video>> {
 				ON v.member_id = latest.member_id AND v.publish_date = latest.max_date
 			INNER JOIN Members m ON v.member_id = m.id
 			ORDER BY v.publish_date DESC
-		`;
-
-    return data.rows;
-  } catch (err) {
-    console.error("Database Error:", err);
-    throw new Error("Failed to fetch all videos.");
-  }
-}
-
-export async function fetchArcadiaVideos(): Promise<Array<Video>> {
-  try {
-    const data = await sql<Video>`
-			SELECT
-				m.name AS uploader_name,
-				m.handle AS uploader_handle,
-				m.yt_id AS uploader_id,
-				v.title,
-				v.video_id,
-				v.publish_date,
-				v.is_arcadia_video,
-				v.duration
-			FROM Videos v
-			INNER JOIN Members m ON v.member_id = m.id
-			WHERE v.is_arcadia_video = TRUE
-			ORDER BY v.publish_date DESC
-			LIMIT 50
 		`;
 
     return data.rows;

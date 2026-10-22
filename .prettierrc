@@ -1,4 +1,3 @@
 plugins: ["prettier-plugin-tailwindcss"]
-tailwindStylesheet: "./app/global.css"
-tailwindConfig: "./tailwind.config.ts"
+tailwindStylesheet: "./app/globals.css"
 tailwindFunctions: ["clsx"]

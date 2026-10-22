@@ -1,27 +1,16 @@
-"use server";
-
-import {
-  fetchMembers,
-  fetchMembersYouTube,
-  fetchVideosForMemberHandle,
-} from "@/app/lib/data";
-import {
-  getCachedMembersYouTube,
-  getCachedLatestVideoIDHandles,
-} from "@/app/lib/cache-methods";
+import { fetchMembers, fetchVideosForMemberHandle } from "@/app/lib/data";
+import { getCachedMembers } from "@/app/lib/cache-methods";
 import { getYouTube } from "@/app/lib/google";
-import {
-  FilterType,
-  Member,
-  MemberYouTube,
-  Video,
-  VideoIDHandle,
-} from "@/app/lib/definitions";
+import { FilterType } from "@/app/lib/definitions";
 import { sql } from "@vercel/postgres";
-import { youtube_v3 } from "googleapis";
 import { createPosts } from "@/app/lib/socials/social-poster";
 import { SocialHandler } from "@/app/lib/socials/social-handler";
 import { revalidateTag } from "next/cache";
+
+// Tags used by getCachedVideos for each home page filter
+const VIDEO_LIST_TAGS = [FilterType.All, FilterType.Arcadia, "Latest"].map(
+  (filter) => `${filter}-videos`,
+);
 
 type CreateVideoData = {
   title: string;
@@ -47,42 +36,6 @@ export async function createVideo(video: CreateVideoData) {
     revalidateTag(`${video.handle}-videos`);
   } catch (err) {
     console.error("Database Error:", err);
-  }
-}
-
-async function updateMemberPfp(yt_id: string, pfp: string) {
-  try {
-    await sql`
-			UPDATE Members
-				SET yt_pfp_url = ${pfp}
-				WHERE yt_id = ${yt_id};
-		`;
-  } catch (e) {
-    console.error(`Failed to update pfp for member ${yt_id}`, e);
-  }
-}
-
-async function updateMemberName(yt_id: string, name: string) {
-  try {
-    await sql`
-			UPDATE Members
-				SET name = ${name}
-				WHERE yt_id = ${yt_id};
-		`;
-  } catch (e) {
-    console.error(`Failed to update pfp for member ${yt_id}`, e);
-  }
-}
-
-async function updateMemberHandle(yt_id: string, handle: string) {
-  try {
-    await sql`
-			UPDATE Members
-				SET handle = ${handle}
-				WHERE yt_id = ${yt_id};
-		`;
-  } catch (e) {
-    console.error(`Failed to update pfp for member ${yt_id}`, e);
   }
 }
 
@@ -116,33 +69,6 @@ async function updateMemberYouTubeSocial(yt_id: string, handle: string) {
   }
 }
 
-async function updateMemberUploadsPlaylist(
-  yt_id: string,
-  uploads_playlist: string,
-) {
-  try {
-    await sql`
-			UPDATE Members
-				SET uploads_playlist = ${uploads_playlist}
-				WHERE yt_id = ${yt_id}
-		`;
-  } catch (e) {
-    console.error(`Failed to update uploads_playlist for member '${yt_id}'`, e);
-  }
-}
-
-async function updateMemberDescription(yt_id: string, description: string) {
-  try {
-    await sql`
-			UPDATE Members
-				SET description = ${description}
-				WHERE yt_id = ${yt_id}
-		`;
-  } catch (e) {
-    console.error(`Failed to update description for member '${yt_id}'`, e);
-  }
-}
-
 async function deleteVideoByVidId(vid_id: string) {
   try {
     await sql`
@@ -150,69 +76,32 @@ async function deleteVideoByVidId(vid_id: string) {
 				WHERE video_id = ${vid_id}
 		`;
   } catch (e) {
-    console.error(`Failed to delete video with id ${vid_id}'`, e);
+    console.error(`Failed to delete video with id '${vid_id}'`, e);
   }
 }
 
 export async function updateDbVideos() {
   console.log("Updating DB Videos...");
-  // Get list of members
-  const members: Array<MemberYouTube> = [];
-  try {
-    members.push(...(await getCachedMembersYouTube()));
-  } catch (e) {
-    console.error("fetchMembersYouTube failure:", e);
-    return;
-  }
-  // Get latest video for each member
-  const latestVideos: Array<VideoIDHandle> = [];
-  try {
-    latestVideos.push(...(await getCachedLatestVideoIDHandles()));
-  } catch (e) {
-    console.error("fetchLatestVideos failure:", e);
-    return;
-  }
-  let api: youtube_v3.Youtube;
-  try {
-    api = getYouTube();
-  } catch (e) {
-    console.error("failed to get YouTube api", e);
-    throw e;
-  }
-  // Create a social handler for posting new videos if we need to.
+  const members = await getCachedMembers();
+  const api = getYouTube();
   const sh = new SocialHandler();
   let didUpdate = false;
 
-  for (let i = 0; i < members.length; ++i) {
-    const member = members[i];
-    if (!member.uploads_playlist) continue;
-    // Get the 10 most recent videos from YouTube
+  for (const member of members) {
+    // Dedupe is by handle; without one we'd re-post every run
+    if (!member.uploads_playlist || !member.handle) continue;
     try {
       const playlistRes = await api.playlistItems.list({
         part: ["snippet"],
         playlistId: member.uploads_playlist,
         maxResults: 5,
       });
-
-      if (!playlistRes.data.items || playlistRes.data.items.length === 0)
-        continue;
-      const playlistVids = playlistRes.data.items;
-      const vidFilter = latestVideos.filter(
-        (vid) => vid.uploader_id === member.yt_id,
+      const vidIdsInDb = (await fetchVideosForMemberHandle(member.handle)).map(
+        (vid) => vid.video_id,
       );
-
-      const vidsInDb = vidFilter.map((vid) => vid.video_id);
-
-      // List of vid ids we have to further request because we want some info we don't have
-      const vidsToRequest: Array<string> = playlistVids
-        .filter((playlist) => {
-          const vidId = playlist.snippet?.resourceId?.videoId;
-          if (!vidId) return false;
-          return !vidsInDb.includes(vidId);
-        })
-        .map((playlist) => {
-          return playlist.snippet?.resourceId?.videoId || "";
-        });
+      const vidsToRequest = (playlistRes.data.items ?? [])
+        .map((item) => item.snippet?.resourceId?.videoId)
+        .filter((id): id is string => !!id && !vidIdsInDb.includes(id));
 
       if (vidsToRequest.length === 0) continue;
       console.log(
@@ -224,289 +113,145 @@ export async function updateDbVideos() {
         part: ["snippet,contentDetails"],
         id: vidsToRequest,
       });
-      if (!vidsRes.data.items || vidsRes.data.items.length === 0) continue;
-      const gcpVidIds = vidsRes.data.items?.map((vid) => vid.id) || [];
+      const vids = vidsRes.data.items ?? [];
+      if (vids.length === 0) continue;
       console.log(
-        `Fetched details for ${gcpVidIds.length} videos from YouTube GCP for member '${member.handle}'\n`,
-        gcpVidIds,
+        `Fetched details for ${vids.length} videos from YouTube GCP for member '${member.handle}'\n`,
+        vids.map((vid) => vid.id),
       );
 
-      const vids = vidsRes.data.items;
-      const formattedVids: Array<CreateVideoData> = [];
-      // Get a list of the videos we have record of in the db
-      const memberVidsInDb = await fetchVideosForMemberHandle(member.handle);
-      const vidIdsInDb = memberVidsInDb.map((vid) => vid.video_id);
-      vids.forEach((vid) => {
-        const snippet = vid.snippet;
-        if (!snippet) return;
-        const valOrEmpty = (val: string | null | undefined) => {
-          return val === undefined || val === null ? "" : val;
-        };
-        if (vidIdsInDb.includes(valOrEmpty(vid.id))) {
-          console.log(
-            `Video with id '${valOrEmpty(vid.id)}' already in DB, skipping.`,
-          );
-          return;
-        }
-        let is_arcadia_video = false;
-        if (snippet.tags) {
-          is_arcadia_video =
-            snippet.tags.filter((tag) => tag.toLowerCase().includes("arcadia"))
-              .length > 0;
-        }
-        let duration: string = "PT0H0H0S";
-        if (vid.contentDetails?.duration) {
-          duration = vid.contentDetails.duration;
-        }
-        let thumbnail_uri: string = `https://i.ytimg.com/vi/${valOrEmpty(vid.id)}/hqdefault.jpg`;
-        if (snippet.thumbnails?.standard?.url) {
-          thumbnail_uri = snippet.thumbnails.standard.url;
-        }
-        formattedVids.push({
-          title: valOrEmpty(snippet.title),
-          video_id: valOrEmpty(vid.id),
-          publish_date: valOrEmpty(snippet.publishedAt),
-          uploader_id: valOrEmpty(snippet.channelId),
-          is_arcadia_video: is_arcadia_video,
-          duration: duration,
-          description: valOrEmpty(snippet.description),
-          thumbnail_uri: thumbnail_uri,
-          handle: member.handle,
-        });
-      });
-
-      const vidsToPost = formattedVids.filter((vid) => {
-        const duration = vid.duration
-          .replace("PT", "")
-          .replace("P", "")
-          .replace("D", ":")
-          .replace("H", ":")
-          .replace("M", ":")
-          .replace("S", "")
-          .split(":")
-          .map((t) => {
-            const s = "00" + t;
-            return s.substring(s.length - 2);
-          })
-          .join(":")
-          .replace(/^0+/, "");
-        // If the video is less than a minute, it's likely a short
-        const isShort = duration.split(":").length === 1;
-        return !isShort && vid.is_arcadia_video;
-      });
-
-      // Only init if we know we are going to be posting videos to social media
-      if (vidsToPost.length > 0 && !sh.isInitialized()) await sh.init();
-
-      const createPostRequests = vidsToPost.map((vid) =>
-        createPosts(
+      const formattedVids: Array<CreateVideoData> = vids.flatMap((vid) => {
+        if (!vid.snippet) return [];
+        const { snippet } = vid;
+        const id = vid.id ?? "";
+        return [
           {
-            video_title: vid.title,
-            video_id: vid.video_id,
-            yt_handle: member.handle,
-            description: vid.description,
-            thumbnail_uri: vid.thumbnail_uri,
+            title: snippet.title ?? "",
+            video_id: id,
+            publish_date: snippet.publishedAt ?? "",
+            uploader_id: snippet.channelId ?? "",
+            is_arcadia_video: !!snippet.tags?.some((tag) =>
+              tag.toLowerCase().includes("arcadia"),
+            ),
+            duration: vid.contentDetails?.duration || "PT0S",
+            description: snippet.description ?? "",
+            thumbnail_uri:
+              snippet.thumbnails?.standard?.url ||
+              `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+            handle: member.handle,
           },
-          sh,
-        ),
+        ];
+      });
+
+      // Seconds-only duration (< 1 min) is likely a short; only post non-short Arcadia videos
+      const vidsToPost = formattedVids.filter(
+        (vid) => vid.is_arcadia_video && !/^PT\d+S$/.test(vid.duration),
       );
-      // Finally create the videos for this person
-      const createVideoRequests = formattedVids.map((vid) => createVideo(vid));
-      await Promise.all(createPostRequests);
-      await Promise.all(createVideoRequests);
+      await Promise.all([
+        ...vidsToPost.map((vid) =>
+          createPosts(
+            {
+              video_title: vid.title,
+              video_id: vid.video_id,
+              yt_handle: member.handle,
+              description: vid.description,
+              thumbnail_uri: vid.thumbnail_uri,
+            },
+            sh,
+          ),
+        ),
+        ...formattedVids.map(createVideo),
+      ]);
 
       didUpdate = true;
     } catch (e) {
       console.error(
-        `YouTube playlist or video request for '${member.yt_id} failed.`,
+        `YouTube playlist or video request for '${member.yt_id}' failed.`,
         e,
       );
       throw e;
     }
   }
 
-  if (didUpdate) {
-    // Revalidate the cached videos for all filter variations so
-    // `getCachedVideos(filter)` entries are invalidated.
-    const filters = [FilterType.All, FilterType.Arcadia, "Latest"];
-    for (const filter of filters) {
-      console.log(`Revalidating tag '${filter}-videos'`);
-      try {
-        revalidateTag(`${filter}-videos`);
-      } catch (e) {
-        console.warn(`Failed to revalidate tag '${filter}-videos'`, e);
-      }
-    }
-
-    // Also revalidate the tag used by `getCachedLatestVideos`.
-    try {
-      revalidateTag("latest-video-id-handles");
-      console.log("Revalidated tag 'latest-video-id-handles'");
-    } catch (e) {
-      console.warn("Failed to revalidate tag 'latest-video-id-handles'", e);
-    }
-  }
+  if (didUpdate) VIDEO_LIST_TAGS.forEach((tag) => revalidateTag(tag));
 }
 
 export async function updateDbMembers() {
-  const members: Array<Member> = [];
-  try {
-    members.push(...(await fetchMembers()));
-  } catch (e) {
-    console.log("updateDbMembers: Failed to fetch members.", e);
-    return;
-  }
-  let api: youtube_v3.Youtube;
-  try {
-    api = getYouTube();
-  } catch (e) {
-    console.error("failed to get YouTube api", e);
-    throw e;
-  }
+  const members = await fetchMembers();
+  const api = getYouTube();
 
-  for (let i = 0; i < members.length; ++i) {
-    const member = members[i];
+  for (const member of members) {
     try {
       const res = await api.channels.list({
         part: ["snippet,contentDetails"],
         id: [member.yt_id],
       });
 
-      if (!res.data.items || res.data.items.length === 0) continue;
-      const ytMember = res.data.items[0];
-      if (!ytMember.snippet) continue;
-      const snippet = ytMember.snippet;
-      if (!ytMember.contentDetails) continue;
-      const contentDetails = ytMember.contentDetails;
-
-      const updatePromises: Array<Promise<void>> = [];
-      if (snippet.customUrl && member.handle !== snippet.customUrl) {
-        // We await here because insert/update member YT social requires this
-        await updateMemberHandle(member.yt_id, snippet.customUrl);
-        // Also add/update this in the socials
-        if (!member.handle) {
-          updatePromises.push(insertMemberYouTubeSocial(snippet.customUrl));
-        } else {
-          updatePromises.push(
-            updateMemberYouTubeSocial(member.yt_id, snippet.customUrl),
-          );
-        }
+      const ytMember = res.data.items?.[0];
+      const snippet = ytMember?.snippet;
+      const contentDetails = ytMember?.contentDetails;
+      if (!snippet || !contentDetails) continue;
+      const handle = snippet.customUrl || null;
+      // COALESCE keeps the current value when YouTube returns nothing (matches the old truthiness checks)
+      await sql`
+				UPDATE Members SET
+					handle = COALESCE(${handle}, handle),
+					name = COALESCE(${snippet.title || null}, name),
+					yt_pfp_url = COALESCE(${snippet.thumbnails?.default?.url || null}, yt_pfp_url),
+					uploads_playlist = COALESCE(${contentDetails.relatedPlaylists?.uploads || null}, uploads_playlist),
+					description = COALESCE(${snippet.description || null}, description)
+				WHERE yt_id = ${member.yt_id}
+			`;
+      // member.handle is the pre-update value: no handle before -> insert the YouTube social, else update it
+      if (handle && handle !== member.handle) {
+        if (member.handle)
+          await updateMemberYouTubeSocial(member.yt_id, handle);
+        else await insertMemberYouTubeSocial(handle);
+        revalidateTag(`${handle}-member`);
+        revalidateTag(`${handle}-socials`);
       }
-      if (snippet.title && member.name !== snippet.title) {
-        updatePromises.push(updateMemberName(member.yt_id, snippet.title));
-      }
-      if (
-        snippet.thumbnails &&
-        snippet.thumbnails.default &&
-        snippet.thumbnails.default.url
-      ) {
-        if (member.yt_pfp_url !== snippet.thumbnails.default.url) {
-          updatePromises.push(
-            updateMemberPfp(member.yt_id, snippet.thumbnails.default.url),
-          );
-        }
-      }
-      if (
-        contentDetails.relatedPlaylists?.uploads &&
-        member.uploads_playlist !== contentDetails.relatedPlaylists.uploads
-      ) {
-        updatePromises.push(
-          updateMemberUploadsPlaylist(
-            member.yt_id,
-            contentDetails.relatedPlaylists.uploads,
-          ),
-        );
-      }
-      if (snippet.description && member.description !== snippet.description) {
-        updatePromises.push(
-          updateMemberDescription(member.yt_id, snippet.description),
-        );
-      }
-      await Promise.all(updatePromises);
+      if (member.handle) revalidateTag(`${member.handle}-member`); // member pages were stale up to 24h
       revalidateTag("members");
-      revalidateTag("membersYouTube");
-      console.log("Revalidated tags 'members' and 'membersYouTube'");
     } catch (e) {
-      console.log(`YouTube Channel request for '${member} failed.'`, e);
+      console.log(`YouTube Channel request for '${member.yt_id}' failed.`, e);
       throw e;
     }
   }
 }
 
 export async function updateDeletedVideos() {
-  // Get list of members
-  const members: Array<MemberYouTube> = [];
-  try {
-    members.push(...(await fetchMembersYouTube()));
-  } catch (e) {
-    console.error("fetchMembersYouTube failure:", e);
-    return;
-  }
-  // Get most recent videos for members
-  const latestVideos: Map<string, Array<Video>> = new Map<
-    string,
-    Array<Video>
-  >();
-  const dbPromises = members.map(async (member) => {
-    latestVideos.set(
-      member.handle,
-      await fetchVideosForMemberHandle(member.handle),
-    );
-  });
-  await Promise.all(dbPromises);
-  let api: youtube_v3.Youtube;
-  try {
-    api = getYouTube();
-  } catch (e) {
-    console.error("failed to get YouTube api", e);
-    throw e;
-  }
-
+  const members = await fetchMembers();
+  const memberVids = await Promise.all(
+    members.map((m) => fetchVideosForMemberHandle(m.handle)),
+  );
+  const api = getYouTube();
   let didDelete = false;
 
-  for (let i = 0; i < members.length; ++i) {
-    const member = members[i];
-    if (!latestVideos.has(member.handle)) continue;
-    const vidIds = latestVideos.get(member.handle)?.map((vid) => vid.video_id);
-    if (!vidIds) continue;
+  for (const [i, member] of members.entries()) {
+    const vidIds = memberVids[i].map((vid) => vid.video_id);
+    if (vidIds.length === 0) continue; // videos.list with no ids 400s and would abort the cron
     try {
-      // Try to fetch all the videos for this member
       const vidRes = await api.videos.list({
         part: ["snippet"],
         id: vidIds,
       });
-      if (!vidRes.data.items || vidRes.data.items.length === 0) continue;
+      if (!vidRes.data.items?.length) continue; // never wipe a member on an empty response
       const validVids = vidRes.data.items.map((item) => item.id);
-      // If the video we have in the db (vidIds) is not in the yt response (validVids)
-      // it was either deleted or set to private. so delete it.
-      for (let j = 0; j < vidIds.length; ++j) {
-        const vidId = vidIds[j];
-        if (!validVids.includes(vidId)) {
-          await deleteVideoByVidId(vidId);
-          didDelete = true;
-        }
+      // In the DB but not returned by YouTube: deleted or set to private
+      for (const vidId of vidIds) {
+        if (validVids.includes(vidId)) continue;
+        await deleteVideoByVidId(vidId);
+        didDelete = true;
+        revalidateTag(`${member.handle}-videos`);
       }
     } catch (e) {
       console.error(
-        `YouTube playlist or video request for '${member.handle} failed.`,
+        `YouTube playlist or video request for '${member.handle}' failed.`,
         e,
       );
       throw e;
     }
   }
-  // Revalidate the cached videos
-  if (didDelete) {
-    // Revalidate the cached videos
-    for (const filter of [
-      FilterType.All,
-      FilterType.Arcadia,
-      FilterType.Latest,
-      "Latest",
-    ]) {
-      console.log(`Revalidating tag '${filter}-videos'`);
-      revalidateTag(`${filter}-videos`);
-    }
-    console.log("Revalidating tag 'latest-video-id-handles'");
-    revalidateTag("latest-video-id-handles");
-  }
+
+  if (didDelete) VIDEO_LIST_TAGS.forEach((tag) => revalidateTag(tag));
 }

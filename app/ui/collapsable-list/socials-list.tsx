@@ -4,51 +4,26 @@ import { Social } from "@/app/lib/definitions";
 import { use } from "react";
 import CollapsableList from "@/app/ui/collapsable-list/collapsable-list";
 
+const ICONS: Record<string, string> = {
+  YouTube: "/icons/yt.png",
+  Twitch: "/icons/twitch.png",
+  "Twitter/X": "/icons/twitter_icon.png",
+  BlueSky: "/icons/bluesky_icon.svg",
+  Linktree: "/icons/linktree.png",
+  TikTok: "/icons/tiktok.png",
+  Instagram: "/icons/instagram.svg",
+};
+
 export default function SocialsList({
-  socials = new Promise(() => []),
+  socials,
 }: {
-  socials?: Promise<Array<Social>>;
+  socials: Promise<Array<Social>>;
 }) {
-  const allSocials = use(socials).map((social) => {
-    let socialUrl: string = "";
-    switch (social.type) {
-      case "YouTube":
-        socialUrl = "/icons/yt.png";
-        break;
-      case "Twitch":
-        socialUrl = "/icons/twitch.png";
-        break;
-      case "Twitter/X":
-        socialUrl = "/icons/twitter_icon.png";
-        break;
-      case "BlueSky":
-        socialUrl = "/icons/bluesky_icon.svg";
-        break;
-      case "Linktree":
-        socialUrl = "/icons/linktree.png";
-        break;
-      case "TikTok":
-        socialUrl = "/icons/tiktok.png";
-        break;
-      case "Instagram":
-        socialUrl = "/icons/instagram.svg";
-        break;
-      default:
-        socialUrl = "/icons/link.svg";
-    }
-
-    let text: string | undefined = social.url;
-    if (text.endsWith("/")) {
-      text = social.url.substring(0, social.url.length - 1);
-    }
-    text = text.split("/").pop();
-
-    return {
-      src: socialUrl,
-      url: social.url,
-      text: text ? text : social.type,
-    };
-  });
+  const allSocials = use(socials).map((social) => ({
+    src: ICONS[social.type] ?? "/icons/link.svg",
+    url: social.url,
+    text: social.url.replace(/\/$/, "").split("/").pop() || social.type,
+  }));
   return (
     <CollapsableList
       data={allSocials}

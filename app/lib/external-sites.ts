@@ -8,3 +8,7 @@ export const externalSites = {
     "https://www.mediafire.com/file/rednhdarehr7ftf/arcadia-season2-world-v2.zip/file",
   modList: "https://moddermore.net/list/8a52816c90",
 };
+
+export const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";

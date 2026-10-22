@@ -1,19 +1,21 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --animate-marquee: marquee 4s ease-in-out infinite alternate;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    /* --foreground: #ededed; */
+  /* 3s slide with a 0.5s hold at each end; `alternate` doubles the holds to 1s */
+  @keyframes marquee {
+    0%,
+    12.5% {
+      translate: 0;
+    }
+    87.5%,
+    100% {
+      translate: var(--marquee-dist);
+    }
   }
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: #171717;
 }

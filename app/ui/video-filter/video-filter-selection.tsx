@@ -5,6 +5,12 @@ import clsx from "clsx";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+const LABELS: Record<FilterType, string> = {
+  [FilterType.Latest]: "Latest",
+  [FilterType.All]: "All Videos",
+  [FilterType.Arcadia]: "Arcadia",
+};
+
 export default function VideoFilterSelection({
   filter,
 }: {
@@ -12,17 +18,6 @@ export default function VideoFilterSelection({
 }) {
   const href = `/${filter}`;
   const isSelected = usePathname() === href;
-  const getLabel = (filter: FilterType): string => {
-    switch (filter) {
-      case FilterType.Latest:
-        return "Latest";
-      case FilterType.All:
-        return "All Videos";
-      case FilterType.Arcadia:
-        return "Arcadia";
-    }
-  };
-  const label = getLabel(filter);
   return (
     <Link
       href={href}
@@ -34,7 +29,7 @@ export default function VideoFilterSelection({
         },
       )}
     >
-      {label}
+      {LABELS[filter]}
     </Link>
   );
 }

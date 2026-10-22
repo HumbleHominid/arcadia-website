@@ -1,28 +1,18 @@
 import type { MetadataRoute } from "next";
-import { fetchMemberHandles } from "@/app/lib/data";
+import { fetchMembers } from "@/app/lib/data";
 import { FilterType } from "@/app/lib/definitions";
+import { siteUrl } from "@/app/lib/external-sites";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const filterTypes = [FilterType.All, FilterType.Arcadia, FilterType.Latest];
-  const out: MetadataRoute.Sitemap = [
-    {
-      url: "/privacy",
-      lastModified: new Date(),
-    },
-  ];
-  filterTypes.forEach((filter) => {
-    out.push({
-      url: `/${filter}`,
-      lastModified: new Date(),
-    });
-  });
-  const members = await fetchMemberHandles();
-  out.push(
+  const lastModified = new Date();
+  const filters = [FilterType.All, FilterType.Arcadia, FilterType.Latest];
+  const members = await fetchMembers();
+  return [
+    { url: `${siteUrl}/privacy`, lastModified },
+    ...filters.map((filter) => ({ url: `${siteUrl}/${filter}`, lastModified })),
     ...members.map((member) => ({
-      url: `/members/${member.handle}`,
-      lastModified: new Date(),
+      url: `${siteUrl}/member/${member.handle}`,
+      lastModified,
     })),
-  );
-
-  return out;
+  ];
 }

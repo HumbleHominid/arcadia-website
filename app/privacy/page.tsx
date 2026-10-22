@@ -1,26 +1,14 @@
 import { Metadata } from "next";
 import PageLayout from "@/app/ui/page-layout";
 import Link from "next/link";
+import { siteUrl } from "@/app/lib/external-sites";
 
 export const metadata: Metadata = {
   title: "Privacy",
 };
 
 export default function Page() {
-  let hostname: string = "";
-  switch (process.env.NODE_ENV) {
-    case "production":
-      const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-      if (vercelUrl) {
-        hostname = vercelUrl;
-        break;
-      }
-    // fallthrough intended
-    case "development":
-    case "test":
-    default:
-      hostname = "localhost:3000";
-  }
+  const hostname = new URL(siteUrl).host;
   return (
     <PageLayout>
       <div className="w-full rounded-sm bg-white p-4 drop-shadow-sm md:drop-shadow-xl">

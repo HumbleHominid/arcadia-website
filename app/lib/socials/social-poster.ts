@@ -1,10 +1,8 @@
-"use server";
-
 import { SocialHandler } from "@/app/lib/socials/social-handler";
 import { fetchSocialsForMemberHandle } from "@/app/lib/data";
 import AtpAgent, { RichText } from "@atproto/api";
 
-const IS_DRY_RUN = process.env.NODE_ENV !== "production" && true;
+const IS_DRY_RUN = process.env.NODE_ENV !== "production";
 
 type SocialPostData = {
   video_title: string;
@@ -13,24 +11,6 @@ type SocialPostData = {
   description: string;
   thumbnail_uri: string;
 };
-
-enum Platform {
-  BSKY = "BlueSky",
-  Twitter = "Twitter/X",
-}
-
-function createPostContents(
-  platform: Platform,
-  video_data: SocialPostData,
-  social_handle: string = "",
-) {
-  let text = video_data.video_title;
-  if (social_handle) text += ` @${social_handle}`;
-  if (platform === Platform.Twitter)
-    text += ` https://www.youtube.com/watch?v=${video_data.video_id}`;
-
-  return text;
-}
 
 async function getBSKYEmbedCard(client: AtpAgent, video_data: SocialPostData) {
   try {
@@ -48,7 +28,6 @@ async function getBSKYEmbedCard(client: AtpAgent, video_data: SocialPostData) {
     };
   } catch (e) {
     console.log(`Failed to produce BSKY Embed Card with err: ${e}`);
-    return;
   }
 }
 
@@ -56,73 +35,57 @@ export async function createPosts(
   data: SocialPostData,
   handler: SocialHandler,
 ) {
-  const socialInfo = await fetchSocialsForMemberHandle(data.yt_handle);
+  const socials = await fetchSocialsForMemberHandle(data.yt_handle);
+  // Handle = last path segment of the member's profile URL
+  const handleFor = (type: string) =>
+    socials
+      .find((s) => s.type === type)
+      ?.url.replace(/\/$/, "")
+      .split("/")
+      .pop();
 
   // Fire and forget intended
-  [Platform.BSKY, Platform.Twitter].forEach(async (platform) => {
-    let post_text: string = "";
-    const platformInfo = socialInfo.filter(
-      (social) => social.type === platform,
+  postSkeet(handler, data, handleFor("BlueSky"));
+  postTweet(handler, data, handleFor("Twitter/X"));
+}
+
+const postText = (data: SocialPostData, handle?: string) =>
+  handle ? `${data.video_title} @${handle}` : data.video_title;
+
+async function postTweet(
+  handler: SocialHandler,
+  data: SocialPostData,
+  handle?: string,
+) {
+  const client = await handler.get_twitter();
+  if (!client) return;
+  const text = `${postText(data, handle)} https://www.youtube.com/watch?v=${data.video_id}`;
+  console.log(`posting tweet: ${text}`);
+  if (IS_DRY_RUN) return;
+  client.v2
+    .tweet({ text })
+    .catch((e) =>
+      console.log(
+        `Failed to post tweet with err code ${e.code} and details: ${e.error?.detail}`,
+      ),
     );
+}
 
-    // If the member has socials they want us to tag, figure out their handle and make the post text
-    if (platformInfo.length > 0) {
-      // Do some URI stuff to get the social handle
-      // TODO: This probably won't work for every social media but it works for the two we have now so no
-      // reason to overengineer something atm
-      const social = platformInfo[0];
-      let social_handle: string | undefined = social.url;
-      if (social_handle.endsWith("/")) {
-        social_handle = social.url.substring(0, social.url.length - 1);
-      }
-      social_handle = social_handle.split("/").pop();
-      post_text = createPostContents(platform, data, social_handle);
-    }
-    // Otherwise, just make the posts text without any tags
-    else {
-      post_text = createPostContents(platform, data);
-    }
-
-    if (platform === Platform.Twitter) {
-      const client = await handler.get_twitter();
-      if (!client) return;
-      try {
-        console.log(`posting tweet: ${post_text}`);
-        if (!IS_DRY_RUN) {
-          client.v2
-            .tweet({
-              text: post_text,
-            })
-            .catch((e) => {
-              console.log(
-                `Failed to post tweet with err code ${e.code} and details: ${e.error.detail}`,
-              );
-            });
-        }
-      } catch (e) {
-        console.log(`Failed to post tweet with err: ${e}`);
-      }
-    } else if (platform === Platform.BSKY) {
-      const client = await handler.get_bsky();
-      if (!client) return;
-      // Have to do some extra formatting work for Bluesky
-      const rt = new RichText({
-        text: post_text,
-      });
-      await rt.detectFacets(client);
-      try {
-        const bskyEmbedData = await getBSKYEmbedCard(client, data);
-        console.log(`posting skeet: ${post_text}`);
-        if (!IS_DRY_RUN) {
-          await client.post({
-            text: rt.text,
-            facets: rt.facets,
-            embed: bskyEmbedData,
-          });
-        }
-      } catch (e) {
-        console.log(`Failed to post skeet with err: ${e}`);
-      }
-    }
-  });
+async function postSkeet(
+  handler: SocialHandler,
+  data: SocialPostData,
+  handle?: string,
+) {
+  const client = await handler.get_bsky();
+  if (!client) return;
+  try {
+    const rt = new RichText({ text: postText(data, handle) });
+    await rt.detectFacets(client);
+    const embed = await getBSKYEmbedCard(client, data);
+    console.log(`posting skeet: ${rt.text}`);
+    if (!IS_DRY_RUN)
+      await client.post({ text: rt.text, facets: rt.facets, embed });
+  } catch (e) {
+    console.log(`Failed to post skeet with err: ${e}`);
+  }
 }

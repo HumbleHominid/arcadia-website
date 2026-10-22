@@ -28,7 +28,7 @@ export default function MemberDesc({
       const p = pRef.current;
       if (!p) return;
       setIsExpanded(false);
-      setTimeout(() => updateExpansion, 500);
+      setTimeout(updateExpansion, 500);
     };
     updateExpansion();
     window.addEventListener("resize", resizeHandler);
@@ -57,7 +57,7 @@ export default function MemberDesc({
     >
       <div
         className={clsx(
-          "absolute bottom-0 left-0 right-0 z-10 w-full",
+          "absolute right-0 bottom-0 left-0 z-10 w-full",
           "transition-opacity duration-300 ease-in-out",
           {
             "opacity-100": canExpand && !isExpanded,
@@ -71,7 +71,7 @@ export default function MemberDesc({
       <p
         ref={pRef}
         className={clsx(
-          "overflow-hidden break-words rounded-sm bg-white p-1 text-sm drop-shadow-sm md:p-2 md:drop-shadow-md",
+          "overflow-hidden rounded-sm bg-white p-1 text-sm break-words drop-shadow-sm md:p-2 md:drop-shadow-md",
           "transition-[max-height] duration-300 ease-in-out",
           {
             "max-h-20 md:max-h-56": !isExpanded,
