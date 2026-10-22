@@ -8,7 +8,16 @@ export default function Footer() {
           href="/privacy"
           className="decoration-1 underline-offset-2 hover:underline"
         >
-          Privacy Policy
+          Privacy &amp; Terms
+        </Link>
+        {" · "}
+        <Link
+          href="https://www.youtube.com/t/terms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="decoration-1 underline-offset-2 hover:underline"
+        >
+          YouTube Terms of Service
         </Link>
       </span>
       <span className="text-xs md:text-base">

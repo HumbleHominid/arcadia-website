@@ -34,8 +34,6 @@ function formatDuration(iso: string) {
 export default function Video({ data }: { data: VideoData }) {
   const posted = timeAgo(new Date(data.publish_date));
   const duration = formatDuration(data.duration);
-  // Strip hashtags if people put them in the title (this is really only here for shorts)
-  const title = data.title.replace(/#([^0-9]+)/g, "").trim();
 
   return (
     <div className="grid grid-cols-[auto_1fr] gap-4 py-2">
@@ -48,7 +46,7 @@ export default function Video({ data }: { data: VideoData }) {
         <div className={"relative w-[160px] overflow-hidden md:w-[200px]"}>
           <Image
             src={`https://i.ytimg.com/vi/${data.video_id}/mqdefault.jpg`}
-            alt={`Thumbnail for ${title}`}
+            alt={`Thumbnail for ${data.title}`}
             width={256}
             height={144}
             className="overflow-hidden align-middle"
@@ -61,7 +59,7 @@ export default function Video({ data }: { data: VideoData }) {
         </div>
       </Link>
       <div>
-        <h2 className="sm:text-md text-sm md:text-xl">{title}</h2>
+        <h2 className="sm:text-md text-sm md:text-xl">{data.title}</h2>
         <p className="text-xs sm:text-sm md:text-base">
           <span className="text-gray-600">by: </span>
           <Link

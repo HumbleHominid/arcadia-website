@@ -89,7 +89,7 @@ export async function fetchVideosForMemberHandle(
   }
 }
 
-// Every stored video ID, grouped by member, for the daily deleted-video check
+// Every stored video ID, grouped by member, for the daily refresh of every stored video
 export async function fetchVideoIdsByMember(): Promise<
   Array<{ handle: string; video_ids: string[] }>
 > {

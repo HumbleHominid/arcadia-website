@@ -2,7 +2,7 @@
 import type { Social } from "@/app/lib/definitions";
 
 // Off locally, and anywhere DISABLE_SOCIAL_POSTING=true (set it for preview/QA deployments,
-// which run with NODE_ENV=production). When off, nothing logs in, uploads or posts.
+// which run with NODE_ENV=production). When off, nothing logs in or posts.
 const POSTING_ENABLED =
   process.env.NODE_ENV === "production" &&
   process.env.DISABLE_SOCIAL_POSTING !== "true";
@@ -10,8 +10,6 @@ const POSTING_ENABLED =
 export type SocialPostData = {
   video_title: string;
   video_id: string;
-  description: string;
-  thumbnail_uri: string;
 };
 
 export type Post = (text: string, data: SocialPostData) => Promise<void>;
