@@ -4,7 +4,7 @@ export default function VideoSkeleton() {
   const getRandomEntry = (arr: string[]) =>
     arr[Math.floor(Math.random() * arr.length)];
   return (
-    <div className="tran grid animate-pulse grid-cols-[auto_1fr] gap-4 py-2">
+    <div className="grid animate-pulse grid-cols-[auto_1fr] gap-4 py-2">
       {/* Skeleton video image */}
       <div className="h-[90px] w-[160px] bg-slate-300 md:h-[112.5px] md:w-[200px]" />
       <div>

@@ -15,49 +15,50 @@ export default function MemberDesc({
   const pRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    const updateExpansion = () => {
-      const p = pRef.current;
-      if (!p) return;
-      const isOverflowing = ({ clientHeight, scrollHeight }: HTMLElement) => {
-        return scrollHeight > clientHeight;
-      };
-      setCanExpand(isOverflowing(p));
-      if (!isOverflowing(p)) setIsExpanded(true);
-    };
-    const resizeHandler = () => {
-      const p = pRef.current;
-      if (!p) return;
-      setIsExpanded(false);
-      setTimeout(() => updateExpansion, 500);
-    };
-    updateExpansion();
-    window.addEventListener("resize", resizeHandler);
-
-    return () => {
-      window.removeEventListener("resize", resizeHandler);
-    };
-  }, []);
+    const p = pRef.current;
+    // Only measure while collapsed: when expanded, scrollHeight == clientHeight
+    if (!p || isExpanded) return;
+    // ResizeObserver fires once on observe, so this also does the initial measure
+    const observer = new ResizeObserver(() =>
+      setCanExpand(p.scrollHeight > p.clientHeight),
+    );
+    observer.observe(p);
+    return () => observer.disconnect();
+  }, [isExpanded]);
 
   const memberData = use(members);
   if (!memberData || memberData.length < 1) return <></>;
   const member = memberData[0];
-  if (!member.description) member.description = `${member.name} on Arcadia!`;
-  const pfp_uri = member.yt_pfp_url ? member.yt_pfp_url : "/icons/user.svg";
+  const description = member.description || `${member.name} on Arcadia!`;
+  const pfp_uri = member.yt_pfp_url || "/icons/user.svg";
 
   const handleClick = () => {
     if (canExpand) setIsExpanded(!isExpanded);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    handleClick();
+  };
+
   return (
     <div
-      className={clsx("relative", {
-        "hover:cursor-pointer": canExpand,
+      className={clsx("relative rounded-sm", {
+        "hover:cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2":
+          canExpand,
       })}
       onClick={handleClick}
+      {...(canExpand && {
+        role: "button",
+        tabIndex: 0,
+        "aria-expanded": isExpanded,
+        onKeyDown: handleKeyDown,
+      })}
     >
       <div
         className={clsx(
-          "absolute bottom-0 left-0 right-0 z-10 w-full",
+          "absolute right-0 bottom-0 left-0 z-10 w-full",
           "transition-opacity duration-300 ease-in-out",
           {
             "opacity-100": canExpand && !isExpanded,
@@ -71,11 +72,11 @@ export default function MemberDesc({
       <p
         ref={pRef}
         className={clsx(
-          "overflow-hidden break-words rounded-sm bg-white p-1 text-sm drop-shadow-sm md:p-2 md:drop-shadow-md",
-          "transition-[max-height] duration-300 ease-in-out",
+          "overflow-hidden rounded-sm bg-white p-1 text-sm break-words drop-shadow-sm md:p-2 md:drop-shadow-md",
+          "transition-[max-height] duration-300 ease-in-out [interpolate-size:allow-keywords]",
           {
             "max-h-20 md:max-h-56": !isExpanded,
-            "max-h-[750px]": isExpanded,
+            "max-h-max": isExpanded,
           },
         )}
       >
@@ -86,7 +87,7 @@ export default function MemberDesc({
           height={32}
           className="float-left mr-1 inline-block h-auto w-8 md:mr-1.5"
         />
-        {member.description}
+        {description}
       </p>
     </div>
   );

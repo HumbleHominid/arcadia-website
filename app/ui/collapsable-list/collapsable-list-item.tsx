@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import clsx from "clsx";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 
 export type CollapsableListItemData = {
@@ -10,11 +11,6 @@ export type CollapsableListItemData = {
   text: string;
 };
 
-enum Dir {
-  Left,
-  Right,
-}
-
 export default function CollapsableListItem({
   data,
 }: {
@@ -22,53 +18,24 @@ export default function CollapsableListItem({
 }) {
   const divRef = useRef<HTMLDivElement>(null);
   const linkRef = useRef<HTMLAnchorElement>(null);
-  const [spanStyle, setSpanStyle] = useState<CSSProperties>({});
-  const [windowSizeUpdate, setWindowSizeUpdate] = useState(0);
+  const [overflow, setOverflow] = useState(0);
 
   useEffect(() => {
     const div = divRef.current;
     const link = linkRef.current;
     if (!div || !link) return;
-    const getBB = (el: HTMLElement) => el.getBoundingClientRect();
-    // only enable the scrolling effect if the span is too big
-    if (getBB(div).right <= getBB(link).right) {
-      setSpanStyle({
-        translate: "0px",
-      });
-      return;
-    }
-    const dist = getBB(div).right - getBB(link).right;
-    let dir = Dir.Left;
-
-    const scrollSpan = () => {
-      if (dir === Dir.Left) {
-        setSpanStyle({
-          translate: `-${dist}px`,
-        });
-        dir = Dir.Right;
-      } else {
-        setSpanStyle({
-          translate: "0px",
-        });
-        dir = Dir.Left;
-      }
-    };
-
-    scrollSpan();
-    const intervalId = setInterval(scrollSpan, 4 * 1000);
-
-    return () => clearInterval(intervalId);
-  }, [windowSizeUpdate]);
-
-  useEffect(() => {
-    const windowSizeUpdateHandler = () => {
-      setWindowSizeUpdate((c) => c + 1);
-    };
-    window.addEventListener("resize", windowSizeUpdateHandler);
-
-    return () => {
-      window.removeEventListener("resize", windowSizeUpdateHandler);
-    };
+    // ResizeObserver fires once on observe, so this also does the initial measure
+    const observer = new ResizeObserver(() =>
+      setOverflow(
+        Math.max(
+          0,
+          div.getBoundingClientRect().right -
+            link.getBoundingClientRect().right,
+        ),
+      ),
+    );
+    observer.observe(link);
+    return () => observer.disconnect();
   }, []);
 
   return (
@@ -84,13 +51,15 @@ export default function CollapsableListItem({
         width={20}
         height={20}
         alt={`${data.text} Image`}
-        className="h-auto w-4 md:w-5"
-        unoptimized
+        className="size-4 object-cover md:size-5"
       />
       <div className="overflow-clip" ref={divRef}>
         <div
-          className="text-sm transition-[translate] duration-[3000ms] ease-in-out md:text-base"
-          style={spanStyle}
+          className={clsx(
+            "text-sm md:text-base",
+            overflow > 0 && "animate-marquee motion-reduce:animate-none",
+          )}
+          style={{ "--marquee-dist": `-${overflow}px` } as CSSProperties}
         >
           {data.text}
         </div>

@@ -1,74 +1,45 @@
 import { unstable_cache } from "next/cache";
 import {
   fetchMembers,
-  fetchAllVideos,
-  fetchArcadiaVideos,
+  fetchVideos,
   fetchLatestVideos,
-  fetchMembersYouTube,
-  fetchLatestVideosForEachMember,
+  fetchVideosForMemberHandle,
+  fetchSocialsForMemberHandle,
 } from "@/app/lib/data";
 import { FilterType } from "@/app/lib/definitions";
 
-export const getCachedMembers = function () {
-  return unstable_cache(
-    async () => {
-      console.log("Fetching members");
-      return await fetchMembers();
-    },
-    ["members"],
-    { revalidate: 24 * 60 * 60, tags: ["members"] }, // Make the member's cache stale after 24h
-  )();
-};
+// Every DB write in actions.ts revalidates its tags, so expiry is only a safety net.
+// Each expiry costs a Neon wake-up (5+ minutes of compute), so keep it long.
+const DAY = 7 * 24 * 60 * 60;
 
-export const getCachedMembersYouTube = function () {
-  return unstable_cache(
-    async () => {
-      console.log("Fetching members' YouTube");
-      return await fetchMembersYouTube();
-    },
-    ["membersYouTube"],
-    { revalidate: 24 * 60 * 60, tags: ["membersYouTube"] }, // Make the member's cache stale after 24h
-  )();
-};
+export const getCachedMembers = unstable_cache(fetchMembers, ["members"], {
+  revalidate: DAY,
+  tags: ["members"],
+});
 
-export const getCachedVideos = function (filter: string) {
-  return unstable_cache(
-    async (filter: string) => {
-      console.log(`Fetching videos with filter: '${filter}'`);
-      switch (filter) {
-        case FilterType.All:
-          return await fetchAllVideos();
-        case FilterType.Arcadia:
-          return await fetchArcadiaVideos();
-        // Fallthrough intended
-        case FilterType.Latest:
-        default:
-          return await fetchLatestVideos();
-      }
-    },
-    [`${filter}-videos`],
-    { revalidate: 24 * 60 * 60, tags: [`${filter}-videos`] },
-  )(filter);
-};
+// FilterType.Latest is "", so map it to a non-empty tag; actions.ts revalidates these
+export const videoListTag = (filter: FilterType) =>
+  `${filter || "latest"}-videos`;
 
-export const getCachedLatestVideos = function () {
-  return unstable_cache(
-    async () => {
-      console.log("Fetching latest videos");
-      return await fetchLatestVideos();
-    },
-    ["update-db-videos"],
-    { revalidate: 24 * 60 * 60, tags: ["update-db-videos"] }, // Make the latest videos cache stale after 24h
+// Tags are per-argument (revalidated per filter/handle), so these build a cache per call.
+export const getCachedVideos = (filter: FilterType) =>
+  unstable_cache(
+    async () =>
+      filter === FilterType.Latest
+        ? fetchLatestVideos()
+        : fetchVideos(filter === FilterType.Arcadia),
+    [videoListTag(filter)], // closure takes no args, so filter must be in keyParts
+    { revalidate: DAY, tags: [videoListTag(filter)] },
   )();
-};
 
-export const getCachedLatestVideoIDHandles = function () {
-  return unstable_cache(
-    async () => {
-      console.log("Fetching latest video ID handles");
-      return await fetchLatestVideosForEachMember();
-    },
-    ["latest-video-id-handles"],
-    { revalidate: 24 * 60 * 60, tags: ["latest-video-id-handles"] }, // Make the latest video ID handles cache stale after 24h
-  )();
-};
+export const getCachedVideosForMemberHandle = (handle: string) =>
+  unstable_cache(fetchVideosForMemberHandle, [], {
+    revalidate: DAY,
+    tags: [`${handle}-videos`],
+  })(handle);
+
+export const getCachedSocialsForMemberHandle = (handle: string) =>
+  unstable_cache(fetchSocialsForMemberHandle, [], {
+    revalidate: DAY,
+    tags: [`${handle}-socials`],
+  })(handle);

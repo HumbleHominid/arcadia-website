@@ -1,11 +1,7 @@
-"use client";
-
 import { Bars3Icon } from "@heroicons/react/16/solid";
-import { useState } from "react";
-import clsx from "clsx";
 
 export default function Accordion({
-  title = "",
+  title,
   isExpandedDefault = false,
   children,
 }: {
@@ -13,37 +9,16 @@ export default function Accordion({
   isExpandedDefault?: boolean;
   children: React.ReactNode;
 }) {
-  const [isExpanded, setIsExpanded] = useState(isExpandedDefault);
-
   return (
-    <div
-      className={clsx(
-        "flex flex-col rounded-sm bg-white p-1 drop-shadow-sm md:p-2 md:drop-shadow-md",
-        {
-          "divide-y divide-gray-200": isExpanded,
-        },
-      )}
+    <details
+      open={isExpandedDefault}
+      className="group divide-gray-200 rounded-sm bg-white p-1 drop-shadow-sm [interpolate-size:allow-keywords] details-content:h-0 details-content:overflow-hidden details-content:transition-[height,content-visibility] details-content:transition-discrete open:divide-y open:details-content:h-auto md:p-2 md:drop-shadow-md"
     >
-      {/* Title and collapse button */}
-      <div
-        className={clsx(
-          "flex items-center gap-4 transition-[padding] hover:cursor-pointer",
-          isExpanded ? "pb-1 md:pb-2" : "pb-0",
-        )}
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+      <summary className="flex min-h-8 list-none items-center gap-4 transition-[padding] select-none group-open:pb-1 hover:cursor-pointer md:min-h-0 md:group-open:pb-2 [&::-webkit-details-marker]:hidden">
         <Bars3Icon width={20} height={20} className="h-auto w-4 md:w-5" />
-        <span className="select-none text-base md:text-xl">{title}</span>
-      </div>
-      {/* This thing collapses */}
-      <div
-        className={clsx(
-          "divide-y divide-gray-200 overflow-hidden transition-[max-height]",
-          isExpanded ? "max-h-[1250px]" : "max-h-0",
-        )}
-      >
-        {children}
-      </div>
-    </div>
+        <span className="text-base md:text-xl">{title}</span>
+      </summary>
+      <div className="divide-y divide-gray-200">{children}</div>
+    </details>
   );
 }

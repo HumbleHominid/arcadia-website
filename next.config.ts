@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 import { externalSites as ES } from "@/app/lib/external-sites";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
     minimumCacheTTL: 24 * 60 * 60,
     remotePatterns: [

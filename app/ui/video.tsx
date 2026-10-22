@@ -1,34 +1,39 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatDistance } from "date-fns";
 import { Video as VideoData } from "@/app/lib/definitions";
 
+const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+const UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+  ["year", 31536000],
+  ["month", 2592000],
+  ["week", 604800],
+  ["day", 86400],
+  ["hour", 3600],
+  ["minute", 60],
+];
+
+function timeAgo(date: Date) {
+  const secs = (date.getTime() - Date.now()) / 1000;
+  const [unit, size] = UNITS.find(([, s]) => Math.abs(secs) >= s) ?? [
+    "second",
+    1,
+  ];
+  return rtf.format(Math.trunc(secs / size), unit);
+}
+
+// ISO-8601 duration (PT1H2M3S, P1DT2H) -> 1:02:03 / 4:05 / 0:45
+function formatDuration(iso: string) {
+  const [d, h, m, s] = ["D", "H", "M", "S"].map((u) =>
+    Number(iso.match(new RegExp(`(\\d+)${u}`))?.[1] ?? 0),
+  );
+  const hours = d * 24 + h;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return hours ? `${hours}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
+
 export default function Video({ data }: { data: VideoData }) {
-  const posted = formatDistance(new Date(data.publish_date), new Date(), {
-    addSuffix: true,
-  });
-  let duration = data.duration
-    .replace("PT", "")
-    .replace("P", "")
-    .replace("D", ":")
-    .replace("H", ":")
-    .replace("M", ":")
-    .replace("S", "")
-    .split(":")
-    .map((t) => {
-      const s = "00" + t;
-      return s.substring(s.length - 2);
-    })
-    .join(":")
-    .replace(/^0+/, "");
-  // If the video is less than a minute, prepend a '0:'
-  if (duration.split(":").length === 1) {
-    duration = "0:" + duration;
-  }
-  // If we still have a leading colon something is really wrong so just set the time to 00:00
-  if (duration.charAt(0) === ":") {
-    duration = "00:00";
-  }
+  const posted = timeAgo(new Date(data.publish_date));
+  const duration = formatDuration(data.duration);
   // Strip hashtags if people put them in the title (this is really only here for shorts)
   const title = data.title.replace(/#([^0-9]+)/g, "").trim();
 
@@ -50,7 +55,7 @@ export default function Video({ data }: { data: VideoData }) {
             unoptimized
           />
           {/* The duration stamp */}
-          <span className="absolute bottom-0 right-0 mb-1 mr-1 bg-slate-800 bg-opacity-60 px-1 text-xs text-white">
+          <span className="absolute right-0 bottom-0 mr-1 mb-1 bg-slate-800/60 px-1 text-xs text-white">
             {duration}
           </span>
         </div>
@@ -61,7 +66,7 @@ export default function Video({ data }: { data: VideoData }) {
           <span className="text-gray-600">by: </span>
           <Link
             href={`/member/${data.uploader_handle}`}
-            className="decoration-1 underline-offset-1 hover:underline"
+            className="-my-1 inline-block py-1 decoration-1 underline-offset-1 hover:underline"
           >
             {data.uploader_name}
           </Link>

@@ -1,21 +1,6 @@
-import { NextResponse, NextRequest } from "next/server";
 import { updateDbVideos } from "@/app/lib/actions";
+import { cronHandler } from "@/app/api/cron/cron-handler";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
-  if (
-    process.env.NODE_ENV === "production" &&
-    req.headers.get("Authorization") !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  console.log("Starting DB Videos cron...");
-  try {
-    await updateDbVideos();
-    return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error("DB Videos cron failure:", e);
-    return NextResponse.json({ error: "Unauthorized" }, { status: 500 });
-  }
-}
+export const GET = cronHandler("DB Videos", updateDbVideos);

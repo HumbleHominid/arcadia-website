@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/app/ui/footer";
-import { inter } from "@/app/ui/font";
+import { Inter } from "next/font/google";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/next";
 import Link from "next/link";
+import { siteUrl } from "@/app/lib/external-sites";
+
+const inter = Inter({ subsets: ["latin"] });
 
 const metaDescription =
   "The official website for Arcadia! Come follow along our Minecraft SMP journey as we create stunning builds and whacky games in our blocky world!";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     template: "%s | Arcadia",
     default: "Arcadia",
@@ -38,13 +42,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   robots: {
-    index: true,
-    follow: true,
-    nocache: false,
     googleBot: {
-      index: true,
-      follow: true,
-      noimageindex: false,
       "max-video-preview": -1,
       "max-image-preview": "large",
       "max-snippet": -1,
@@ -61,13 +59,10 @@ export const metadata: Metadata = {
     title: "Arcadia",
     description: metaDescription,
     siteName: "Arcadia",
-    url: process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : "http://localhost:3000/",
+    url: siteUrl,
     images: [
       {
         url: "/images/twitter.png",
-        secureUrl: "/images/twitter.png",
         type: "image/png",
         width: 1200,
         height: 630,
@@ -95,6 +90,7 @@ export default function RootLayout({
           width={2560}
           height={1440}
           alt="Arcadia Background Image"
+          priority
           className="sticky top-0 -z-10 col-span-full row-span-full h-screen min-w-full object-cover"
         />
         <main className="col-span-full row-span-full mx-0 my-auto grid min-h-screen max-w-5xl grid-rows-[auto_auto_1fr_auto] items-center">
@@ -103,9 +99,10 @@ export default function RootLayout({
             <Link href="/" className="">
               <Image
                 src="/images/banner.png"
-                width={1500}
-                height={500}
+                width={3839}
+                height={933}
                 alt="Arcadia Banner Image"
+                priority
                 className="p-2 md:p-4"
               />
             </Link>

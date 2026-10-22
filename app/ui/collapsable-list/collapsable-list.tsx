@@ -1,5 +1,3 @@
-"use client";
-
 import CollapsableListItem, {
   CollapsableListItemData,
 } from "@/app/ui/collapsable-list/collapsable-list-item";
@@ -7,7 +5,7 @@ import Accordion from "@/app/ui/accordion";
 
 export default function CollapsableList({
   data = [],
-  title = "",
+  title,
   isExpandedDefault = false,
 }: {
   data?: Array<CollapsableListItemData>;
