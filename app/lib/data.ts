@@ -126,26 +126,3 @@ export async function fetchSocialsForMemberHandle(
     throw new Error(`Failed to fetch socials for handle '${handle}'.`);
   }
 }
-
-export async function fetchMemberByHandle(
-  handle: string,
-): Promise<Array<Member>> {
-  try {
-    const data = await sql<Member>`
-			SELECT
-				name,
-				handle,
-				yt_id,
-				yt_pfp_url,
-				uploads_playlist,
-				description
-			FROM Members
-			WHERE handle = ${handle}
-		`;
-
-    return data.rows;
-  } catch (err) {
-    console.error("Database Error:", err);
-    throw new Error(`Failed to fetch member with handle '${handle}'.`);
-  }
-}

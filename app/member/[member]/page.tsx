@@ -9,7 +9,7 @@ import MemberDesc from "@/app/member/[member]/member-desc";
 import {
   getCachedVideosForMemberHandle,
   getCachedSocialsForMemberHandle,
-  getCachedMemberByHandle,
+  getCachedMembers,
 } from "@/app/lib/cache-methods";
 
 type Props = {
@@ -18,9 +18,9 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const handle = (await params).member.replace("%40", "@");
-  const member = await getCachedMemberByHandle(handle);
+  const member = (await getCachedMembers()).find((m) => m.handle === handle);
   return {
-    title: member[0] ? member[0].name : "Arcadian",
+    title: member ? member.name : "Arcadian",
   };
 }
 
@@ -29,7 +29,9 @@ export default async function Page({ params }: Props) {
   const handle = (await params).member.replace("%40", "@");
   const socials = getCachedSocialsForMemberHandle(handle);
   const videos = getCachedVideosForMemberHandle(handle);
-  const members = getCachedMemberByHandle(handle);
+  const members = getCachedMembers().then((ms) =>
+    ms.filter((m) => m.handle === handle),
+  );
 
   return (
     <PageLayout>

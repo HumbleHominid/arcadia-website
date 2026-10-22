@@ -15,34 +15,22 @@ export default function MemberDesc({
   const pRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    const updateExpansion = () => {
-      const p = pRef.current;
-      if (!p) return;
-      const isOverflowing = ({ clientHeight, scrollHeight }: HTMLElement) => {
-        return scrollHeight > clientHeight;
-      };
-      setCanExpand(isOverflowing(p));
-      if (!isOverflowing(p)) setIsExpanded(true);
-    };
-    const resizeHandler = () => {
-      const p = pRef.current;
-      if (!p) return;
-      setIsExpanded(false);
-      setTimeout(updateExpansion, 500);
-    };
-    updateExpansion();
-    window.addEventListener("resize", resizeHandler);
-
-    return () => {
-      window.removeEventListener("resize", resizeHandler);
-    };
-  }, []);
+    const p = pRef.current;
+    // Only measure while collapsed: when expanded, scrollHeight == clientHeight
+    if (!p || isExpanded) return;
+    // ResizeObserver fires once on observe, so this also does the initial measure
+    const observer = new ResizeObserver(() =>
+      setCanExpand(p.scrollHeight > p.clientHeight),
+    );
+    observer.observe(p);
+    return () => observer.disconnect();
+  }, [isExpanded]);
 
   const memberData = use(members);
   if (!memberData || memberData.length < 1) return <></>;
   const member = memberData[0];
-  if (!member.description) member.description = `${member.name} on Arcadia!`;
-  const pfp_uri = member.yt_pfp_url ? member.yt_pfp_url : "/icons/user.svg";
+  const description = member.description || `${member.name} on Arcadia!`;
+  const pfp_uri = member.yt_pfp_url || "/icons/user.svg";
 
   const handleClick = () => {
     if (canExpand) setIsExpanded(!isExpanded);
@@ -86,7 +74,7 @@ export default function MemberDesc({
           height={32}
           className="float-left mr-1 inline-block h-auto w-8 md:mr-1.5"
         />
-        {member.description}
+        {description}
       </p>
     </div>
   );

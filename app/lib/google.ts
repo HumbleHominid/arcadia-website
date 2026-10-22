@@ -1,9 +1,32 @@
-import { google } from "googleapis";
+import { ExternalAccountClient } from "google-auth-library";
 import { getVercelOidcToken } from "@vercel/functions/oidc";
 
-export function getYouTube() {
+// Only the fields actions.ts reads
+type YouTubeItem = {
+  id?: string;
+  snippet?: {
+    title?: string;
+    publishedAt?: string;
+    channelId?: string;
+    tags?: string[];
+    description?: string;
+    customUrl?: string;
+    resourceId?: { videoId?: string };
+    thumbnails?: { standard?: { url?: string }; default?: { url?: string } };
+  };
+  contentDetails?: {
+    duration?: string;
+    relatedPlaylists?: { uploads?: string };
+  };
+};
+
+let authClient: ReturnType<typeof ExternalAccountClient.fromJSON> = null;
+
+// Reused across calls so the library's token caching/refresh applies
+function getAuthClient() {
+  if (authClient) return authClient;
   const env = process.env;
-  const authClient = google.auth.ExternalAccountClient.fromJSON({
+  authClient = ExternalAccountClient.fromJSON({
     type: "external_account",
     audience: `//iam.googleapis.com/projects/${env.GCP_PROJECT_NUMBER}/locations/global/workloadIdentityPools/${env.GCP_WORKLOAD_IDENTITY_POOL_ID}/providers/${env.GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID}`,
     subject_token_type: "urn:ietf:params:oauth:token-type:jwt",
@@ -21,5 +44,21 @@ export function getYouTube() {
     throw new Error(
       "Failed to create an external account client with vercel OIDC",
     );
-  return google.youtube({ version: "v3", auth: authClient });
+  return authClient;
+}
+
+export async function youtube(
+  resource: "channels" | "playlistItems" | "videos",
+  params: Record<string, string>,
+): Promise<{ items?: YouTubeItem[] }> {
+  const { token } = await getAuthClient().getAccessToken();
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/${resource}?${new URLSearchParams(params)}`,
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  if (!res.ok)
+    throw new Error(
+      `YouTube ${resource} request failed: ${res.status} ${await res.text()}`,
+    );
+  return res.json();
 }

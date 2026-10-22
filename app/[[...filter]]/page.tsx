@@ -12,7 +12,7 @@ import { externalSites as ES } from "@/app/lib/external-sites";
 import { getCachedMembers, getCachedVideos } from "@/app/lib/cache-methods";
 
 type Props = {
-  params: Promise<{ filter: FilterType }>;
+  params: Promise<{ filter?: string[] }>;
 };
 
 export const metadata: Metadata = {
@@ -21,13 +21,10 @@ export const metadata: Metadata = {
 
 export default async function Page({ params }: Props) {
   const resolvedParams = await params;
-  const latest = "Latest";
-  const filter =
-    resolvedParams.filter === undefined ? "Latest" : resolvedParams.filter[0];
-  const validFilters: string[] = [FilterType.All, FilterType.Arcadia, latest];
-  if (!validFilters.includes(filter)) notFound();
+  const filter = (resolvedParams.filter?.[0] ??
+    FilterType.Latest) as FilterType;
+  if (!Object.values(FilterType).includes(filter)) notFound();
 
-  // Try to update the DB with new videos
   const members = getCachedMembers();
   const videos = getCachedVideos(filter);
   const community = [
@@ -76,7 +73,6 @@ export default async function Page({ params }: Props) {
       </div>
       {/* Video section */}
       <div className="flex h-min w-full flex-col items-center rounded-sm bg-white text-lg drop-shadow-sm md:drop-shadow-xl">
-        {/* Need a context switcher */}
         <VideoFilter />
         {/* List of videos */}
         <Suspense fallback={<VideoListSkeleton />}>

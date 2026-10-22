@@ -4,7 +4,6 @@ import {
   fetchVideos,
   fetchLatestVideos,
   fetchVideosForMemberHandle,
-  fetchMemberByHandle,
   fetchSocialsForMemberHandle,
 } from "@/app/lib/data";
 import { FilterType } from "@/app/lib/definitions";
@@ -16,15 +15,19 @@ export const getCachedMembers = unstable_cache(fetchMembers, ["members"], {
   tags: ["members"],
 });
 
+// FilterType.Latest is "", so map it to a non-empty tag; actions.ts revalidates these
+export const videoListTag = (filter: FilterType) =>
+  `${filter || "latest"}-videos`;
+
 // Tags are per-argument (revalidated per filter/handle), so these build a cache per call.
-export const getCachedVideos = (filter: string) =>
+export const getCachedVideos = (filter: FilterType) =>
   unstable_cache(
     async () =>
-      filter === "Latest"
+      filter === FilterType.Latest
         ? fetchLatestVideos()
         : fetchVideos(filter === FilterType.Arcadia),
-    [`${filter}-videos`], // closure takes no args, so filter must be in keyParts
-    { revalidate: DAY, tags: [`${filter}-videos`] },
+    [videoListTag(filter)], // closure takes no args, so filter must be in keyParts
+    { revalidate: DAY, tags: [videoListTag(filter)] },
   )();
 
 export const getCachedVideosForMemberHandle = (handle: string) =>
@@ -37,10 +40,4 @@ export const getCachedSocialsForMemberHandle = (handle: string) =>
   unstable_cache(fetchSocialsForMemberHandle, [], {
     revalidate: DAY,
     tags: [`${handle}-socials`],
-  })(handle);
-
-export const getCachedMemberByHandle = (handle: string) =>
-  unstable_cache(fetchMemberByHandle, [], {
-    revalidate: DAY,
-    tags: [`${handle}-member`],
   })(handle);
