@@ -1,15 +1,11 @@
 "use client";
 
 import { Member } from "@/app/lib/definitions";
-import { use, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
 
-export default function MemberDesc({
-  members,
-}: {
-  members: Promise<Array<Member>>;
-}) {
+export default function MemberDesc({ member }: { member: Member }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [canExpand, setCanExpand] = useState(false);
   const pRef = useRef<HTMLParagraphElement>(null);
@@ -26,9 +22,6 @@ export default function MemberDesc({
     return () => observer.disconnect();
   }, [isExpanded]);
 
-  const memberData = use(members);
-  if (!memberData || memberData.length < 1) return <></>;
-  const member = memberData[0];
   const description = member.description || `${member.name} on Arcadia!`;
   const pfp_uri = member.yt_pfp_url || "/icons/user.svg";
 
