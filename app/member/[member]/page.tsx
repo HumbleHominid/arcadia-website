@@ -20,7 +20,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const handle = (await params).member.replace("%40", "@");
   const member = (await getCachedMembers()).find((m) => m.handle === handle);
-  return { title: member?.name ?? "Arcadian" };
+  return { title: member?.name || "Arcadian" };
 }
 
 export default async function Page({ params }: Props) {

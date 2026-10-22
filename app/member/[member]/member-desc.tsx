@@ -78,6 +78,8 @@ export default function MemberDesc({ member }: { member: Member }) {
           alt={`${member.name} profile picture`}
           width={32}
           height={32}
+          unoptimized
+          referrerPolicy="no-referrer"
           className="float-left mr-1 inline-block h-auto w-8 md:mr-1.5"
         />
         {description}

@@ -51,7 +51,11 @@ export default function CollapsableListItem({
         width={20}
         height={20}
         alt={`${data.text} Image`}
-        className="size-4 object-cover md:size-5"
+        // YouTube avatars are served no-transform, so load them as-is; ggpht rate-limits
+        // hotlinked requests that carry a Referer
+        unoptimized={data.src.startsWith("http")}
+        referrerPolicy="no-referrer"
+        className="size-4 object-contain md:size-5"
       />
       <div className="overflow-clip" ref={divRef}>
         <div

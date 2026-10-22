@@ -2,7 +2,7 @@ import { ExternalAccountClient } from "google-auth-library";
 import { getVercelOidcToken } from "@vercel/functions/oidc";
 
 // Only the fields actions.ts reads
-type YouTubeItem = {
+export type YouTubeItem = {
   id?: string;
   snippet?: {
     title?: string;
@@ -11,12 +11,13 @@ type YouTubeItem = {
     description?: string;
     customUrl?: string;
     resourceId?: { videoId?: string };
-    thumbnails?: { standard?: { url?: string }; default?: { url?: string } };
+    thumbnails?: { default?: { url?: string } };
   };
   contentDetails?: {
     duration?: string;
     relatedPlaylists?: { uploads?: string };
   };
+  status?: { privacyStatus?: string };
 };
 
 const env = process.env;
