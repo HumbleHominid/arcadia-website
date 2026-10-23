@@ -6,29 +6,15 @@
 // Without --apply it only lists the matching posts. Reads BSKY_IDENTIFIER / BSKY_PASSWORD
 // from the production Vercel environment. Needs the Vercel CLI, logged in and linked to this project.
 import { AtpAgent } from "@atproto/api";
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { pullVercelEnv } from "./vercel-env.mjs";
 
 const apply = process.argv.slice(2).includes("--apply");
 
-// Pull production's Bluesky credentials into a temp file, read them, and delete the file
-const dir = mkdtempSync(join(tmpdir(), "arcadia-env-"));
-let identifier, password;
-try {
-  execFileSync(
-    "vercel",
-    ["env", "pull", "--yes", "--environment=production", join(dir, ".env")],
-    { stdio: "ignore" },
-  );
-  const text = readFileSync(join(dir, ".env"), "utf8");
-  const get = (k) => text.match(new RegExp(`^${k}="?([^"\\n]+)"?$`, "m"))?.[1];
-  identifier = get("BSKY_IDENTIFIER");
-  password = get("BSKY_PASSWORD");
-} finally {
-  rmSync(dir, { recursive: true, force: true });
-}
+// Production's Bluesky credentials
+const { BSKY_IDENTIFIER: identifier, BSKY_PASSWORD: password } = pullVercelEnv(
+  "production",
+  ["BSKY_IDENTIFIER", "BSKY_PASSWORD"],
+);
 if (!identifier || !password)
   throw new Error(
     "No BSKY_IDENTIFIER / BSKY_PASSWORD in the production environment",

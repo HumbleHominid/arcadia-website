@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { Video, Social, Member } from "@/app/lib/definitions";
+import { Video, Social, Member, Announcement } from "@/app/lib/definitions";
 
 // Neon's HTTP driver: each query is one request, with no connection to set up first
 export const sql = neon(process.env.DATABASE_URL!);
@@ -122,5 +122,45 @@ export async function fetchSocialsForMemberHandle(
   } catch (err) {
     console.error("Database Error:", err);
     throw new Error(`Failed to fetch socials for handle '${handle}'.`);
+  }
+}
+
+// Includes announcements that haven't started yet: the result is cached for days and the
+// client filters by the current time, so a scheduled one shows up without a DB hit.
+// Never selects the image bytes (see fetchAnnouncementImage).
+export async function fetchAnnouncements(): Promise<Array<Announcement>> {
+  try {
+    return (await sql`
+			SELECT
+				id,
+				to_char(starts_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS starts_at,
+				to_char(ends_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS ends_at,
+				title,
+				text,
+				image IS NOT NULL AS has_image
+			FROM announcements
+			WHERE ends_at IS NULL OR ends_at > now()
+			ORDER BY starts_at DESC, id DESC
+		`) as Announcement[];
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error("Failed to fetch announcements.");
+  }
+}
+
+// Base64, because unstable_cache stores JSON
+export async function fetchAnnouncementImage(
+  id: number,
+): Promise<{ data: string; image_type: string } | null> {
+  try {
+    const rows = await sql`
+			SELECT encode(image, 'base64') AS data, image_type
+			FROM announcements
+			WHERE id = ${id} AND image IS NOT NULL
+		`;
+    return (rows[0] as { data: string; image_type: string }) ?? null;
+  } catch (err) {
+    console.error("Database Error:", err);
+    throw new Error(`Failed to fetch image for announcement ${id}.`);
   }
 }

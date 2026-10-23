@@ -23,6 +23,17 @@ export type Member = {
   description: string;
 };
 
+// starts_at/ends_at are ISO 'YYYY-MM-DDTHH:MM:SSZ' strings in UTC; a null ends_at never ends.
+// The image itself is served from /api/announcements/[id]/image when has_image is true.
+export type Announcement = {
+  id: number;
+  starts_at: string;
+  ends_at: string | null;
+  title: string;
+  text: string;
+  has_image: boolean;
+};
+
 export enum FilterType {
   Latest = "",
   All = "all",

@@ -9,7 +9,12 @@ import { Metadata } from "next";
 import VideoFilter from "@/app/ui/video-filter/video-filter";
 import { notFound } from "next/navigation";
 import { externalSites as ES } from "@/app/lib/external-sites";
-import { getCachedMembers, getCachedVideos } from "@/app/lib/cache-methods";
+import {
+  getCachedAnnouncements,
+  getCachedMembers,
+  getCachedVideos,
+} from "@/app/lib/cache-methods";
+import AnnouncementCarousel from "@/app/ui/announcements/announcement-carousel";
 
 type Props = {
   params: Promise<{ filter?: string[] }>;
@@ -26,6 +31,8 @@ export default async function Page({ params }: Props) {
 
   const members = getCachedMembers();
   const videos = getCachedVideos(filter);
+  const announcements = getCachedAnnouncements();
+  const now = Date.now();
   const community = [
     {
       src: "/icons/twitter_icon.png",
@@ -75,13 +82,18 @@ export default async function Page({ params }: Props) {
         <CollapsableList data={community} title="Community" />
         <CollapsableList data={server} title="Server Stuff" />
       </div>
-      {/* Video section */}
-      <div className="flex h-min w-full flex-col items-center rounded-sm bg-white text-lg drop-shadow-sm md:drop-shadow-xl">
-        <VideoFilter />
-        {/* List of videos */}
-        <Suspense fallback={<VideoListSkeleton />}>
-          <VideoList videos={videos} />
+      {/* Announcements (top of page on mobile) and video section */}
+      <div className="contents md:flex md:w-full md:min-w-0 md:flex-col md:gap-4">
+        <Suspense fallback={null}>
+          <AnnouncementCarousel announcements={announcements} now={now} />
         </Suspense>
+        <div className="flex h-min w-full flex-col items-center rounded-sm bg-white text-lg drop-shadow-sm md:drop-shadow-xl">
+          <VideoFilter />
+          {/* List of videos */}
+          <Suspense fallback={<VideoListSkeleton />}>
+            <VideoList videos={videos} />
+          </Suspense>
+        </div>
       </div>
     </PageLayout>
   );

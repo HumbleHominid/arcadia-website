@@ -7,9 +7,7 @@
 // with or without the leading "@". Needs the Vercel CLI, logged in and linked to this project.
 import { neon } from "@neondatabase/serverless";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { pullVercelEnv } from "./vercel-env.mjs";
 
 const args = process.argv.slice(2);
 const apply = args.includes("--apply");
@@ -25,21 +23,8 @@ if (
   process.exit(1);
 }
 
-// Pull that environment's DATABASE_URL into a temp file, read it, and delete the file
-const dir = mkdtempSync(join(tmpdir(), "arcadia-env-"));
-let url;
-try {
-  execFileSync(
-    "vercel",
-    ["env", "pull", "--yes", `--environment=${env}`, join(dir, ".env")],
-    { stdio: "ignore" },
-  );
-  url = readFileSync(join(dir, ".env"), "utf8").match(
-    /^DATABASE_URL="?([^"\n]+)"?$/m,
-  )?.[1];
-} finally {
-  rmSync(dir, { recursive: true, force: true });
-}
+// Read that environment's DATABASE_URL
+const { DATABASE_URL: url } = pullVercelEnv(env, ["DATABASE_URL"]);
 if (!url) throw new Error(`No DATABASE_URL in the ${env} environment`);
 const sql = neon(url);
 

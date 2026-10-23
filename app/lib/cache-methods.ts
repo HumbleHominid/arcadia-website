@@ -5,6 +5,8 @@ import {
   fetchLatestVideos,
   fetchVideosForMemberHandle,
   fetchSocialsForMemberHandle,
+  fetchAnnouncements,
+  fetchAnnouncementImage,
 } from "@/app/lib/data";
 import { FilterType } from "@/app/lib/definitions";
 
@@ -43,3 +45,16 @@ export const getCachedSocialsForMemberHandle = (handle: string) =>
     revalidate: DAY,
     tags: [`${handle}-socials`],
   })(handle);
+
+// Invalidated by db/add-announcement.mjs (`vercel cache invalidate`); the app never writes them
+export const getCachedAnnouncements = unstable_cache(
+  fetchAnnouncements,
+  ["announcements"],
+  { revalidate: DAY, tags: ["announcements"] },
+);
+
+export const getCachedAnnouncementImage = (id: number) =>
+  unstable_cache(fetchAnnouncementImage, ["announcement-image", String(id)], {
+    revalidate: DAY,
+    tags: ["announcements"],
+  })(id);

@@ -16,6 +16,22 @@
   }
 }
 
+@keyframes announcement-ring {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.announcement-progress {
+  animation-name: announcement-ring;
+  animation-duration: var(--announcement-ms);
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
 body {
   color: #171717;
 }
@@ -28,6 +44,10 @@ body {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+  /* The timer animation drives slide advance, so it must keep its real duration */
+  .announcement-progress {
+    animation-duration: var(--announcement-ms) !important;
   }
   ::details-content {
     transition-duration: 0.01ms !important;
