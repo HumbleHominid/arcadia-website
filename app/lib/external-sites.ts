@@ -6,6 +6,8 @@ export const externalSites = {
     "https://www.mediafire.com/file/an45poqm8p6ldc3/arcadia-smp-season1-v1.zip/file",
   seasonTwoWorldDL:
     "https://www.mediafire.com/file/rednhdarehr7ftf/arcadia-season2-world-v2.zip/file",
+  seasonThreeWorldDL:
+    "https://www.mediafire.com/file/wha1vhkos4qq3gh/arcadia3_wd.zip/file",
   modList: "https://moddermore.net/list/8a52816c90",
 };
 

@@ -55,6 +55,11 @@ export default async function Page({ params }: Props) {
       text: "Season 2 World Download",
     },
     {
+      src: "/icons/arrow-down-tray.svg",
+      url: ES.seasonThreeWorldDL,
+      text: "Season 3 World Download",
+    },
+    {
       src: "/icons/moddermore-positive.png",
       url: ES.modList,
       text: "Server Mods",
