@@ -66,7 +66,8 @@ export default function AnnouncementCarousel({
       }}
       onPointerCancel={() => (touchX.current = null)}
     >
-      <div className="relative px-3">
+      {/* The side padding is where the deck layers peek out, so only a deck needs it */}
+      <div className={clsx("relative", n > 1 && "px-3")}>
         {n > 1 && (
           <>
             <div className={clsx(card, "absolute inset-x-0 inset-y-4")} />
